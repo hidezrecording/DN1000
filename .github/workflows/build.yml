@@ -21,7 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Download JUCE 8.0.6
+        run: |
+          curl -L https://github.com/juce-framework/JUCE/archive/refs/tags/8.0.6.zip -o juce.zip
+          unzip -q juce.zip
+          mv JUCE-8.0.6 /tmp/juce-8.0.6
+
       - name: Configure
+        env:
+          JUCE_DIR: /tmp/juce-8.0.6
         run: cmake -B build -G Xcode -DCMAKE_BUILD_TYPE=Release
                  -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
                  -S juce
