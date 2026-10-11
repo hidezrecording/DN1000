@@ -103,6 +103,12 @@ void Biquad::setLowPass(double fs, double f0, float q) {
 // —————————————————————————————————————————————————————————————————————
 void Channel::prepare(double sampleRate) {
     fs_ = sampleRate;
+    slew_.prepare(sampleRate);
+    // Miller capacitance: 20 kHz gentle rolloff (top of audio band)
+    // (Must be below Nyquist!)
+    float millerFreq = sampleRate * 0.42f; // ~20 kHz at 48k
+    if (millerFreq > 20000.0f) millerFreq = 20000.0f;
+    miller_.setLowPass(sampleRate, millerFreq, 0.707f);
     setParams(p_);
     reset();
 }
@@ -150,19 +156,30 @@ void Channel::setParams(const ChannelParams& p) {
 void Channel::reset() {
     hpf_.reset(); lpf_.reset();
     bass_.reset(); bassBump_.reset(); mid_.reset(); treble_.reset();
-    inXfmr_.reset();
+    inXfmr_.reset(); miller_.reset();
+    noise_.reset(); slew_.reset();
     vu_ = 0.0f;
 }
 
 float Channel::processSample(float x) {
+    // Power supply: update with current demand (sag + ripple)
+    float demand = std::fabs(x * inGainLin_);
+    psu_.update(demand, fs_);
+    float rail = psu_.getRail();
+
     // Input transformer (Tamura 80071): adds weight and air
-    float y = inXfmr_.process(x * inGainLin_, 1.0f);
+    // Rail voltage affects headroom: lower rail = earlier saturation
+    float y = inXfmr_.process(x * inGainLin_, 2.0f - rail);
 
     // Discrete preamp: 3 transistor stages, all-discrete (no ICs).
     // Unity gain when clean; each stage adds 2nd-order harmonics when driven.
     y = transistorStage(y);  // input stage
+    // (Miller capacitance and slew limiting disabled — too aggressive for now)
     y = transistorStage(y);  // driver stage
     y = transistorStage(y);  // output stage
+
+    // Analog noise: hiss + hum (-100 dB, inaudible in tests)
+    y += noise_.process() + psu_.getRipple();
 
     if (p_.phaseInvert) y = -y;
     if (p_.hpfMode != 0) y = hpf_.process(y);

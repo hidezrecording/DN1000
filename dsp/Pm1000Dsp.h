@@ -23,6 +23,7 @@
 // asymmetric saturation tuned to "airy 2nd-order top / glued bottom").
 // ─────────────────────────────────────────────────────────────────────
 #include <cmath>
+#include <cstdint>
 
 namespace pm1000 {
 
@@ -90,8 +91,65 @@ struct ChannelParams {
 // Channel — input → EQ → per-channel GAIN (mono), with VU tap
 // —————————————————————————————————————————————————————————————————————
 // —————————————————————————————————————————————————————————————————————
-// Analog component models
+// Analog component models — including inter-stage physics
 // —————————————————————————————————————————————————————————————————————
+// Power supply: sags under load, has ripple, couples channels.
+// This is the "glue" — when both channels hit hard, the rails dip.
+struct PowerSupply {
+    float railVoltage = 1.0f;  // normalized (1.0 = nominal)
+    float ripplePhase = 0.0f;
+    // currentDemand: sum of absolute signal from both channels (0..2)
+    void update(float currentDemand, double fs) {
+        // Sag: rails dip when current demand is high (slow, ~10 Hz)
+        float target = 1.0f - currentDemand * 0.03f; // 3% sag at full load
+        railVoltage += (target - railVoltage) * 0.001f;
+        ripplePhase += 2.0f * 3.14159f * 120.0f / (float)fs; // 120 Hz ripple
+        if (ripplePhase > 2.0f * 3.14159f) ripplePhase -= 2.0f * 3.14159f;
+    }
+    float getRail() const { return railVoltage; }
+    float getRipple() const {
+        return std::sin(ripplePhase) * 0.0005f * (2.0f - railVoltage);
+    }
+};
+
+// Noise: transistor hiss (white + 1/f) + mains hum.
+// Real discrete consoles are never silent.
+struct AnalogNoise {
+    float white_ = 0.0f;
+    float pink1_ = 0.0f, pink2_ = 0.0f; // 1/f approximation
+    unsigned int seed_ = 12345;
+    float nextWhite() {
+        seed_ = seed_ * 1664525u + 1013904223u;
+        return ((seed_ >> 16) & 0x7FFF) / 16384.0f - 1.0f;
+    }
+    float process() {
+        float w = nextWhite();
+        pink1_ = pink1_ * 0.98f + w * 0.02f;
+        pink2_ = pink2_ * 0.94f + w * 0.06f;
+        // -100 dB: audible as "life", inaudible in measurements
+        return w * 0.00001f + (pink1_ + pink2_) * 0.000005f;
+    }
+    void reset() { white_ = pink1_ = pink2_ = 0.0f; }
+};
+
+// Slew limiter: discrete stages can't swing infinitely fast.
+// Softens transients like real transistor circuits.
+struct SlewLimiter {
+    float last_ = 0.0f;
+    float maxDelta_ = 0.1f; // max change per sample (set by prepare)
+    void prepare(double fs) {
+        // 100 V/us: only softens extreme transients, transparent otherwise
+        maxDelta_ = 100.0f / (float)fs * 2.0f;
+    }
+    float process(float x) {
+        float delta = x - last_;
+        if (delta > maxDelta_) delta = maxDelta_;
+        else if (delta < -maxDelta_) delta = -maxDelta_;
+        last_ += delta;
+        return last_;
+    }
+    void reset() { last_ = 0.0f; }
+};
 // Transformer: flux-based hysteresis. The core saturates based on the
 // integral of voltage (flux), not instantaneous voltage. This gives the
 // "glued" low end and airy top of real iron.
@@ -148,6 +206,11 @@ private:
     Biquad hpf_, lpf_, bass_, bassBump_, mid_, treble_;
     float vu_ = 0.0f;
     Transformer inXfmr_;
+    AnalogNoise noise_;
+    SlewLimiter slew_;
+    PowerSupply psu_;
+    // Inter-stage: Miller capacitance (HF rolloff between transistor stages)
+    Biquad miller_; // gentle 30 kHz lowpass
 };
 
 // —————————————————————————————————————————————————————————————————————
