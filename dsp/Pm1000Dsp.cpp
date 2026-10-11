@@ -104,11 +104,12 @@ void Biquad::setLowPass(double fs, double f0, float q) {
 void Channel::prepare(double sampleRate) {
     fs_ = sampleRate;
     slew_.prepare(sampleRate);
-    // Miller capacitance: 20 kHz gentle rolloff (top of audio band)
-    // (Must be below Nyquist!)
-    float millerFreq = sampleRate * 0.42f; // ~20 kHz at 48k
-    if (millerFreq > 20000.0f) millerFreq = 20000.0f;
+    // Miller: 30 kHz, very subtle (1% blend in process)
+    float millerFreq = 30000.0f;
+    if (millerFreq > sampleRate * 0.45f) millerFreq = (float)(sampleRate * 0.45f);
     miller_.setLowPass(sampleRate, millerFreq, 0.707f);
+    // Coupling cap: 3 Hz highpass (LF phase shift, subtle)
+    coupling_.setHighPass(sampleRate, 3.0, 0.707f);
     setParams(p_);
     reset();
 }
@@ -156,8 +157,9 @@ void Channel::setParams(const ChannelParams& p) {
 void Channel::reset() {
     hpf_.reset(); lpf_.reset();
     bass_.reset(); bassBump_.reset(); mid_.reset(); treble_.reset();
-    inXfmr_.reset(); miller_.reset();
+    inXfmr_.reset(); miller_.reset(); coupling_.reset();
     noise_.reset(); slew_.reset();
+    thermal_ = 0.0f;
     vu_ = 0.0f;
 }
 
@@ -174,9 +176,19 @@ float Channel::processSample(float x) {
     // Discrete preamp: 3 transistor stages, all-discrete (no ICs).
     // Unity gain when clean; each stage adds 2nd-order harmonics when driven.
     y = transistorStage(y);  // input stage
-    // (Miller capacitance and slew limiting disabled — too aggressive for now)
+    y = coupling_.process(y); // coupling cap (LF phase shift)
     y = transistorStage(y);  // driver stage
+    // Miller capacitance: subtle 30 kHz rolloff (phase shift, not amplitude)
+    y = y * 0.99f + miller_.process(y) * 0.01f; // 1% blend = very subtle
     y = transistorStage(y);  // output stage
+
+    // Thermal drift: transistors warm up with signal, bias shifts slowly.
+    // Time constant ~10 seconds. Subtle: ±1% gain variation.
+    thermal_ += (std::fabs(y) - thermal_) * 0.00002f;
+    y *= (1.0f + thermal_ * 0.01f);
+
+    // Slew limiting: authentic 15 V/us (transparent for normal signals)
+    y = slew_.process(y);
 
     // Analog noise: hiss + hum (-100 dB, inaudible in tests)
     y += noise_.process() + psu_.getRipple();
@@ -237,9 +249,10 @@ void MasterStage::setLevel(float level) {
 void MasterStage::reset() {}
 
 void MasterStage::process(float inL, float inR, float& outL, float& outR) {
-    // Clean summing — the per-channel output sections carry the color.
-    outL = inL * outLin_;
-    outR = inR * outLin_;
+    // Crosstalk: -60 dB L/R bleed via shared PSU and proximity.
+    // Real consoles are never perfectly separated.
+    outL = inL * outLin_ + inR * outLin_ * 0.001f;
+    outR = inR * outLin_ + inL * outLin_ * 0.001f;
 }
 
 } // namespace pm1000

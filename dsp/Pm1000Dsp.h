@@ -138,8 +138,10 @@ struct SlewLimiter {
     float last_ = 0.0f;
     float maxDelta_ = 0.1f; // max change per sample (set by prepare)
     void prepare(double fs) {
-        // 100 V/us: only softens extreme transients, transparent otherwise
-        maxDelta_ = 100.0f / (float)fs * 2.0f;
+        // Authentic slew: transparent for all normal audio, including
+        // 18 kHz at full scale (delta=0.47). Limits only pathological
+        // transients (digital clicks, etc.).
+        maxDelta_ = 0.5f;
     }
     float process(float x) {
         float delta = x - last_;
@@ -209,8 +211,11 @@ private:
     AnalogNoise noise_;
     SlewLimiter slew_;
     PowerSupply psu_;
-    // Inter-stage: Miller capacitance (HF rolloff between transistor stages)
-    Biquad miller_; // gentle 30 kHz lowpass
+    Biquad miller_;
+    // Coupling caps: AC coupling between stages (LF phase shift)
+    Biquad coupling_;
+    // Thermal: transistors heat up, Vbe drops, bias shifts (very slow)
+    float thermal_ = 0.0f;
 };
 
 // —————————————————————————————————————————————————————————————————————

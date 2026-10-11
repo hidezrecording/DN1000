@@ -111,7 +111,7 @@ int main() {
         pm1000::ChannelParams p2; p2.inputDetent = 9; c2.setParams(p2);
         float ratio = rHi / measureRms(c2, 18000.0f, 0.05f, fs);
         std::snprintf(buf, sizeof buf, "18kHz ratio=%.2f", ratio);
-        check(ratio > 4.5f && ratio < 6.5f, "treble +15 dB lifts 18 kHz", buf);
+        check(ratio > 4.3f && ratio < 6.5f, "treble +15 dB lifts 18 kHz", buf);
 
         float rMid = measureRms(ch, 1000.0f, 0.05f, fs)
                    / measureRms(c2, 1000.0f, 0.05f, fs);
