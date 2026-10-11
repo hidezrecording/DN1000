@@ -48,6 +48,13 @@ jobs:
           if [ -d "build/Hamamatsu1000_artefacts/Release/Standalone/Hamamatsu 1000.app" ]; then
             cp -R "build/Hamamatsu1000_artefacts/Release/Standalone/Hamamatsu 1000.app" "$PKGROOT/Applications/"
           fi
+          # DN1000 Test Host (file player)
+          if [ -d "build/DN1000TestHost.app" ]; then
+            cp -R "build/DN1000TestHost.app" "$PKGROOT/Applications/DN1000 Test Host.app"
+          elif [ -f "build/DN1000TestHost" ]; then
+            mkdir -p "$PKGROOT/Applications/DN1000 Test Host.app/Contents/MacOS"
+            cp "build/DN1000TestHost" "$PKGROOT/Applications/DN1000 Test Host.app/Contents/MacOS/"
+          fi
           pkgbuild --root "$PKGROOT" \
             --identifier com.sabatinoaudio.hamamatsu1000 \
             --version 0.1.0 \
@@ -65,21 +72,3 @@ jobs:
         with:
           name: Hamamatsu1000-Installer-macOS-${{ github.run_number }}
           path: Hamamatsu1000-0.1.0-macOS.pkg
-
-  windows:
-    name: Windows (VST3)
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure
-        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release -S juce
-
-      - name: Build
-        run: cmake --build build --config Release --parallel
-
-      - name: Upload plugins
-        uses: actions/upload-artifact@v4
-        with:
-          name: Hamamatsu1000-Windows-${{ github.run_number }}
-          path: build/Hamamatsu1000_artefacts/Release/
