@@ -62,18 +62,36 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
         g.drawLine(p1.x, p1.y, p2.x, p2.y, 1.6f);
     }
 
-    // Skirt
-    g.setColour(juce::Colour(0xff0c0c0e));
+    // Skirt — glossy black shaft (differentiates from faceplate)
+    juce::ColourGradient shaftG(juce::Colour(0xff2a2a2e), centre.x, centre.y - radius,
+                                juce::Colour(0xff050506), centre.x, centre.y + radius, false);
+    g.setGradientFill(shaftG);
     g.fillEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
+    // Glossy specular highlight (top-left)
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.28f));
+    g.fillEllipse(centre.x - radius * 0.65f, centre.y - radius * 0.75f,
+                  radius * 0.7f, radius * 0.45f);
 
     // Body — fixed top-down lighting (bright crown, dark base), never rotates
     const float br = radius * 0.88f;
-    juce::ColourGradient body(light.brighter(0.25f), centre.x, centre.y - br,
-                              dark.darker(0.35f), centre.x, centre.y + br, false);
+    juce::ColourGradient body(light.brighter(0.3f), centre.x - br * 0.3f, centre.y - br,
+                              dark.darker(0.4f), centre.x + br * 0.2f, centre.y + br, false);
     g.setGradientFill(body);
     g.fillEllipse(centre.x - br, centre.y - br, br * 2.0f, br * 2.0f);
-    // (Top sheen removed — its arc rendered as a ghost line at 10:30)
-    g.setColour(juce::Colour(0xff000000).withAlpha(0.45f));
+    // Knurled grip: fine radial ridges around the edge (like real hardware)
+    const int nKnurl = 48;
+    for (int i = 0; i < nKnurl; ++i) {
+        const float a = (float)i / nKnurl * 6.28318f;
+        const auto p1 = centre.getPointOnCircumference(br * 0.97f, a);
+        const auto p2 = centre.getPointOnCircumference(br * 1.0f, a);
+        // Alternate light/dark for ridged effect
+        g.setColour((i & 1) ? juce::Colour(0x000000).withAlpha(0.0f)
+                            : dark.darker(0.5f).withAlpha(0.55f));
+        if ((i & 1) == 0)
+            g.drawLine(p1.x, p1.y, p2.x, p2.y, 1.8f);
+    }
+    // (Rim light and sheen removed — arcs render as ghost lines)
+    g.setColour(juce::Colour(0xff000000).withAlpha(0.5f));
     g.drawEllipse(centre.x - br, centre.y - br, br * 2.0f, br * 2.0f, 1.5f);
 
     // Pointer
@@ -98,69 +116,59 @@ void PmLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& butt
     const auto pivot = bounds.getCentre();
     const float s = (kind == "amp") ? 1.45f : 1.0f;
 
-    // Panel washer
-    g.setColour(juce::Colour(0xff0e0e10));
-    g.fillEllipse(pivot.x - 10.5f * s, pivot.y - 10.5f * s, 21.0f * s, 21.0f * s);
+    // Outer chrome bezel (round, like the UA reference)
+    const float bezR = 11.0f * s;
+    juce::ColourGradient bez(juce::Colour(0xffe8e8ec), pivot.x - bezR, pivot.y - bezR,
+                             juce::Colour(0xff6a6a72), pivot.x + bezR, pivot.y + bezR, false);
+    g.setGradientFill(bez);
+    g.fillEllipse(pivot.x - bezR, pivot.y - bezR, bezR * 2.0f, bezR * 2.0f);
+    // Bezel highlight (top-left)
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.6f));
+    g.drawEllipse(pivot.x - bezR + 1.0f * s, pivot.y - bezR + 1.0f * s,
+                  (bezR - 1.0f * s) * 2.0f, (bezR - 1.0f * s) * 2.0f, 1.5f);
+    // Dark inner circle
+    const float inR = 7.5f * s;
+    juce::ColourGradient inner(juce::Colour(0xff3a3a40), pivot.x - inR, pivot.y - inR,
+                               juce::Colour(0xff0e0e10), pivot.x + inR, pivot.y + inR, false);
+    g.setGradientFill(inner);
+    g.fillEllipse(pivot.x - inR, pivot.y - inR, inR * 2.0f, inR * 2.0f);
 
-    // Hex mounting nut — the screw that holds the switch down
-    juce::Path hex;
-    for (int i = 0; i < 6; ++i) {
-        const float a = i * 1.0472f + 0.5236f;
-        const auto pt = juce::Point<float>(pivot.x + std::cos(a) * 9.0f * s,
-                                           pivot.y + std::sin(a) * 9.0f * s);
-        if (i == 0) hex.startNewSubPath(pt); else hex.lineTo(pt);
-    }
-    hex.closeSubPath();
-    juce::ColourGradient nut(juce::Colour(0xffd9d9de), pivot.x - 9.0f * s, pivot.y - 9.0f * s,
-                             juce::Colour(0xff7c7c83), pivot.x + 9.0f * s, pivot.y + 9.0f * s, false);
-    g.setGradientFill(nut);
-    g.fillPath(hex);
-    g.setColour(juce::Colour(0xff2a2a2e));
-    g.strokePath(hex, juce::PathStrokeType(1.0f));
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.35f));
-    for (int i = 4; i < 6; ++i) {
-        const float a1 = i * 1.0472f + 0.5236f, a2 = (i + 1) * 1.0472f + 0.5236f;
-        g.drawLine(pivot.x + std::cos(a1) * 9.0f * s, pivot.y + std::sin(a1) * 9.0f * s,
-                   pivot.x + std::cos(a2) * 9.0f * s, pivot.y + std::sin(a2) * 9.0f * s, 1.2f);
-    }
-
-    // Threaded bushing
-    juce::ColourGradient bush(juce::Colour(0xffb9b9bf), pivot.x - 4.0f * s, 0.0f,
-                              juce::Colour(0xff6e6e75), pivot.x + 4.0f * s, 0.0f, false);
-    g.setGradientFill(bush);
-    g.fillRoundedRectangle(pivot.x - 4.0f * s, pivot.y - 7.0f * s,
-                           8.0f * s, 14.0f * s, 3.0f * s);
-    g.setColour(juce::Colour(0xff4a4a50).withAlpha(0.8f));
-    for (int i = 0; i < 3; ++i) {
-        const float yy = pivot.y - 3.5f * s + i * 3.5f * s;
-        g.drawLine(pivot.x - 3.6f * s, yy, pivot.x + 3.6f * s, yy, 0.9f);
-    }
-
-    // Lever — travels up (on) / down (off) around the pivot.
-    // Traditional bat: uniform shaft, fully rounded tip (never pointy).
-    const float ang = on ? -0.30f : juce::MathConstants<float>::pi + 0.30f;
-    const float len = 15.0f * s, bw = 3.5f * s;
+    // Lever — short stubby bat with ball tip (UA reference)
+    const float ang = on ? -0.32f : juce::MathConstants<float>::pi + 0.32f;
+    const float len = 12.0f * s, bw = 3.5f * s;
     juce::Graphics::ScopedSaveState ss(g);
     g.addTransform(juce::AffineTransform::rotation(ang, pivot.x, pivot.y));
-    juce::Rectangle<float> bat(pivot.x - bw, pivot.y - len, bw * 2.0f, len);
-    // Cylindrical chrome: bright core, dark flanks
-    juce::ColourGradient steel(juce::Colour(0xff6e6e75), pivot.x - bw, pivot.y,
-                               juce::Colour(0xffffffff), pivot.x - bw * 0.25f, pivot.y, false);
-    g.setGradientFill(steel);
-    g.fillRoundedRectangle(bat, bw);
-    juce::ColourGradient steelR(juce::Colour(0xffe8e8ec), pivot.x + bw * 0.25f, pivot.y,
-                                juce::Colour(0xff5a5a61), pivot.x + bw, pivot.y, false);
-    g.setGradientFill(steelR);
-    g.fillRoundedRectangle(bat.withLeft(pivot.x + bw * 0.25f), bw);
+    const float bx = pivot.x, by = pivot.y - len;
+    // Bat shaft: polished chrome cylinder
+    // Left flank (dark) → center highlight → right flank (mid-dark)
+    juce::ColourGradient shaft(juce::Colour(0xff4a4a52), bx - bw, pivot.y,
+                               juce::Colour(0xffffffff), bx - bw * 0.2f, pivot.y, false);
+    g.setGradientFill(shaft);
+    g.fillRoundedRectangle(bx - bw, by, bw * 1.8f, len, bw * 0.9f);
+    juce::ColourGradient shaftR(juce::Colour(0xffffffff), bx - bw * 0.2f, pivot.y,
+                                juce::Colour(0xff5a5a62), bx + bw, pivot.y, false);
+    g.setGradientFill(shaftR);
+    g.fillRoundedRectangle(bx - bw * 0.2f, by, bw * 1.2f, len, bw * 0.6f);
+    // Bright specular streak (left-of-center, like reference)
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.95f));
+    g.fillRoundedRectangle(bx - bw * 0.55f, by + 1.5f * s,
+                           bw * 0.32f, len - 3.0f * s, bw * 0.16f);
+    // Ball tip: sphere at the end
+    const float ballR = bw * 1.1f;
+    const float ballX = bx, ballY = by - ballR * 0.3f;
+    juce::ColourGradient ball(juce::Colour(0xffffffff), ballX - ballR, ballY - ballR,
+                              juce::Colour(0xff5a5a62), ballX + ballR, ballY + ballR, false);
+    g.setGradientFill(ball);
+    g.fillEllipse(ballX - ballR, ballY - ballR, ballR * 2.0f, ballR * 2.0f);
+    // Ball highlight
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.9f));
+    g.fillEllipse(ballX - ballR * 0.5f, ballY - ballR * 0.6f,
+                  ballR * 0.6f, ballR * 0.45f);
     // Highlight ridge
     g.setColour(juce::Colour(0xffffffff).withAlpha(0.5f));
     g.drawLine(pivot.x - 1.1f * s, pivot.y - 3.0f * s,
                pivot.x - 1.1f * s, pivot.y - len + 6.0f * s, 1.3f);
-    // Pivot dome
-    g.setColour(juce::Colour(0xff55555c));
-    g.fillEllipse(pivot.x - 3.0f * s, pivot.y - 4.5f * s, 6.0f * s, 6.0f * s);
-    g.setColour(juce::Colour(0xff2c2c30));
-    g.drawEllipse(pivot.x - 3.0f * s, pivot.y - 4.5f * s, 6.0f * s, 6.0f * s, 1.0f);
+    // (Pivot dome removed)
 }
 
 // —————————————————————————————————————————————————————————————————————

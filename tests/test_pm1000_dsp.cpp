@@ -119,32 +119,32 @@ int main() {
         check(rMid > 0.9f && rMid < 1.1f, "treble shelf spares 1 kHz", buf);
     }
 
-    // 5. Mid bell +12 dB at 1.6 kHz; selector moves it 700 Hz / 3.2 kHz
+    // 5. Mid bell +12 dB at 2 kHz; selector moves it 1 kHz / 4 kHz
     {
         pm1000::Channel ch; ch.prepare(fs);
         pm1000::ChannelParams p; p.inputDetent = 9; p.midDb = 12.0f; p.midSel = 1;
         ch.setParams(p);
         pm1000::Channel c2; c2.prepare(fs);
         pm1000::ChannelParams p2; p2.inputDetent = 9; c2.setParams(p2);
-        float ratio = measureRms(ch, 1600.0f, 0.05f, fs)
-                    / measureRms(c2, 1600.0f, 0.05f, fs);
-        std::snprintf(buf, sizeof buf, "1.6kHz ratio=%.2f", ratio);
-        check(ratio > 3.5f && ratio < 4.5f, "mid +12 dB peaks at 1.6 kHz", buf);
+        float ratio = measureRms(ch, 2000.0f, 0.05f, fs)
+                    / measureRms(c2, 2000.0f, 0.05f, fs);
+        std::snprintf(buf, sizeof buf, "2kHz ratio=%.2f", ratio);
+        check(ratio > 3.5f && ratio < 4.5f, "mid +12 dB peaks at 2 kHz", buf);
 
         pm1000::Channel ch3; ch3.prepare(fs);
         pm1000::ChannelParams p3; p3.inputDetent = 9; p3.midDb = 12.0f; p3.midSel = 0;
         ch3.setParams(p3);
-        float r700 = measureRms(ch3, 700.0f, 0.05f, fs) / measureRms(c2, 700.0f, 0.05f, fs);
-        float r32k = measureRms(ch3, 3200.0f, 0.05f, fs) / measureRms(c2, 3200.0f, 0.05f, fs);
-        std::snprintf(buf, sizeof buf, "sel=700Hz: 700=%.2f 3.2k=%.2f", r700, r32k);
-        check(r700 > 3.5f && r32k < 2.0f, "mid selector 700 Hz position", buf);
+        float r1k = measureRms(ch3, 1000.0f, 0.05f, fs) / measureRms(c2, 1000.0f, 0.05f, fs);
+        float r4k = measureRms(ch3, 4000.0f, 0.05f, fs) / measureRms(c2, 4000.0f, 0.05f, fs);
+        std::snprintf(buf, sizeof buf, "sel=1kHz: 1k=%.2f 4k=%.2f", r1k, r4k);
+        check(r1k > 3.5f && r4k < 2.0f, "mid selector 1 kHz position", buf);
 
         pm1000::ChannelParams p4; p4.inputDetent = 9; p4.midDb = 12.0f; p4.midSel = 2;
         ch3.setParams(p4);
-        float r700B = measureRms(ch3, 700.0f, 0.05f, fs) / measureRms(c2, 700.0f, 0.05f, fs);
-        float r32kB = measureRms(ch3, 3200.0f, 0.05f, fs) / measureRms(c2, 3200.0f, 0.05f, fs);
-        std::snprintf(buf, sizeof buf, "sel=3.2kHz: 700=%.2f 3.2k=%.2f", r700B, r32kB);
-        check(r32kB > 3.5f && r700B < 2.0f, "mid selector 3.2 kHz position", buf);
+        float r1kB = measureRms(ch3, 1000.0f, 0.05f, fs) / measureRms(c2, 1000.0f, 0.05f, fs);
+        float r4kB = measureRms(ch3, 4000.0f, 0.05f, fs) / measureRms(c2, 4000.0f, 0.05f, fs);
+        std::snprintf(buf, sizeof buf, "sel=4kHz: 1k=%.2f 4k=%.2f", r1kB, r4kB);
+        check(r4kB > 3.5f && r1kB < 2.0f, "mid selector 4 kHz position", buf);
     }
 
     // 6. Bass shelf +15 dB lifts 40 Hz

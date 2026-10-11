@@ -12,8 +12,8 @@ constexpr int kStripAY = 50, kStripBY = 210, kStripH = 140;
 constexpr int kRowAY = 120, kRowBY = 280;
 
 constexpr int kMicX = 156, kInputX = 231;
-constexpr int kHpfX = 385, kMidSwX = 435, kLpfX = 335;
-constexpr int kBassX = 505, kMidX = 595, kTrebleX = 685, kOutX = 762, kAmpX = 810;
+constexpr int kHpfX = 320, kMidSwX = 380, kLpfX = 440;
+constexpr int kBassX = 510, kMidX = 585, kTrebleX = 660, kOutX = 760, kAmpX = 825;
 constexpr int kModeX = 815;
 }
 
@@ -118,7 +118,7 @@ void Hamamatsu1000Editor::layoutStrip(ChannelStrip& s, int cy) {
     s.midKnob.setBounds(kMidX - 32, cy - 32, 64, 64);
     s.trebleKnob.setBounds(kTrebleX - 32, cy - 32, 64, 64);
     s.outKnob.setBounds(kOutX - 39, cy - 39, 78, 78);
-    s.outMode.setBounds(kAmpX - 8, cy - 36, 16, 72);
+    s.outMode.setBounds(kAmpX - 6, cy - 36, 16, 72);
 }
 
 // —————————————————————————————————————————————————————————————————————
@@ -130,23 +130,43 @@ void Hamamatsu1000Editor::renderFaceplate() {
     g.fillAll(PmStyle::face());
 
     std::mt19937 rng(1234);
+    // Brushed metal: fine horizontal streaks (anisotropic highlight)
+    std::uniform_real_distribution<float> by(0, kH);
+    std::uniform_real_distribution<float> bl(60.0f, 400.0f);
+    std::uniform_real_distribution<float> ba(0.03f, 0.09f);
+    for (int i = 0; i < 1400; ++i) {
+        const float y = by(rng);
+        const float x = std::uniform_real_distribution<float>(0, kW)(rng);
+        const float len = bl(rng);
+        const float a = ba(rng);
+        const bool light = (i & 1) == 0;
+        g.setColour((light ? juce::Colour(0xffe8eaec) : juce::Colour(0xff5a5e63))
+                        .withAlpha(a));
+        g.fillRect(x, y, len, 1.0f);
+    }
+    // Fine hammered grain
     std::uniform_real_distribution<float> dx(0, kW), dy(0, kH);
-    std::uniform_real_distribution<float> ds(0.6f, 2.2f);
-    for (int i = 0; i < 9000; ++i) {
+    std::uniform_real_distribution<float> ds(0.5f, 1.6f);
+    for (int i = 0; i < 12000; ++i) {
         const float x = dx(rng), y = dy(rng), s = ds(rng);
         const bool light = (i & 1) == 0;
-        g.setColour(light ? juce::Colour(0xff9fa3a7).withAlpha(0.5f)
-                          : juce::Colour(0xff74787d).withAlpha(0.5f));
+        g.setColour(light ? juce::Colour(0xffa8adb2).withAlpha(0.35f)
+                          : juce::Colour(0xff6e7277).withAlpha(0.35f));
         g.fillEllipse(x, y, s, s * 0.7f);
     }
-    juce::ColourGradient vg(juce::Colour(0xff000000).withAlpha(0.12f), 0, 0,
-                            juce::Colour(0xff000000).withAlpha(0.0f), 0, 90, false);
+    // Directional studio light: soft top-left key, gentle falloff
+    juce::ColourGradient key(juce::Colour(0xffffffff).withAlpha(0.07f), 0, 0,
+                             juce::Colour(0xffffffff).withAlpha(0.0f), kW * 0.7f, kH * 0.7f, false);
+    g.setGradientFill(key);
+    g.fillRect(0, 0, kW, kH);
+    juce::ColourGradient vg(juce::Colour(0xff000000).withAlpha(0.14f), 0, 0,
+                            juce::Colour(0xff000000).withAlpha(0.0f), 0, 110, false);
     g.setGradientFill(vg);
-    g.fillRect(0, 0, kW, 90);
-    juce::ColourGradient vg2(juce::Colour(0xff000000).withAlpha(0.0f), 0, kH - 90,
-                             juce::Colour(0xff000000).withAlpha(0.12f), 0, kH, false);
+    g.fillRect(0, 0, kW, 110);
+    juce::ColourGradient vg2(juce::Colour(0xff000000).withAlpha(0.0f), 0, kH - 110,
+                             juce::Colour(0xff000000).withAlpha(0.16f), 0, kH, false);
     g.setGradientFill(vg2);
-    g.fillRect(0, kH - 90, kW, 90);
+    g.fillRect(0, kH - 110, kW, 110);
 }
 
 void Hamamatsu1000Editor::drawScrew(juce::Graphics& g, float x, float y) {
@@ -256,29 +276,34 @@ void Hamamatsu1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, floa
 }
 
 void Hamamatsu1000Editor::drawBoardTape(juce::Graphics& g) {
-    const float tw = 370.0f, th = 36.0f;
+    const float tw = 280.0f, th = 36.0f;
     const float tx = (973.0f - tw) * 0.5f, ty = 359.0f;
     const float cx = tx + tw * 0.5f, cy = ty + th * 0.5f;
     juce::Graphics::ScopedSaveState ss(g);
     g.addTransform(juce::AffineTransform::rotation(-0.026f, cx, cy)); // ~1.5 deg
+    // Torn tape shape: jagged left/right edges (ripped from a roll)
+    juce::Path tapePath;
+    std::mt19937 rng(42);
+    std::uniform_real_distribution<float> jag(-4.0f, 4.0f);
+    const int nSeg = 12;
+    tapePath.startNewSubPath(tx + jag(rng), ty);
+    for (int i = 1; i <= nSeg; ++i) {
+        const float y = ty + (th * i) / nSeg;
+        tapePath.lineTo(tx + jag(rng), y);
+    }
+    for (int i = nSeg; i >= 0; --i) {
+        const float y = ty + (th * i) / nSeg;
+        tapePath.lineTo(tx + tw + jag(rng), y);
+    }
+    tapePath.closeSubPath();
     // Tape shadow
     g.setColour(juce::Colour(0xff000000).withAlpha(0.35f));
-    g.fillRect(tx + 2.0f, ty + 3.0f, tw, th);
-    // Tape body
+    g.fillPath(tapePath, juce::AffineTransform::translation(2.0f, 3.0f));
+    // Tape body (no ruled lines)
     juce::ColourGradient tape(juce::Colour(0xffdccb9f), tx, ty,
                               juce::Colour(0xffc9b586), tx, ty + th, false);
     g.setGradientFill(tape);
-    g.fillRect(tx, ty, tw, th);
-    // Fibre streaks
-    g.setColour(juce::Colour(0xffb89f66).withAlpha(0.5f));
-    for (int i = 0; i < 5; ++i) {
-        const float yy = ty + 5.0f + i * 6.5f;
-        g.drawLine(tx + 6.0f, yy, tx + tw - 6.0f, yy + 1.5f, 0.8f);
-    }
-    // Torn edges
-    g.setColour(juce::Colour(0xff8a7648).withAlpha(0.8f));
-    g.drawLine(tx, ty, tx, ty + th, 1.5f);
-    g.drawLine(tx + tw, ty, tx + tw, ty + th, 1.5f);
+    g.fillPath(tapePath);
     // Sharpie scribble — long and stretched out
     {
         juce::Graphics::ScopedSaveState ss2(g);
@@ -345,10 +370,10 @@ void Hamamatsu1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy)
     // Toggle markers
     drawToggleMarkers(g, s.micToggle, "MIC", "LINE");
     drawStripLabel(g, "AMP", kAmpX, cy + 37);
-    // T / C / S aligned to the three tab centers, bold like the EQ freqs
+    // T / C / S to the LEFT of the switch now
     g.setColour(juce::Colours::white.withAlpha(0.92f));
     g.setFont(PmStyle::condensed(10.5f));
-    const int mx = kAmpX + 10;
+    const int mx = kAmpX - 24;
     const char* modes[3] = { "T", "C", "S" };
     for (int i = 0; i < 3; ++i)
         g.drawText(modes[i], mx, cy - 26 + i * 20, 14, 12,
@@ -375,7 +400,7 @@ void Hamamatsu1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy)
     // HIGH CUT: 3 positions (OFF/20K/16K), labels lined up with HI-PASS
     slideLabels(s.lpfSlide, kLpfX - 36, { "OFF", "20", "16" });
     drawStripLabel(g, "HIGH CUT", kLpfX, cy + 37);
-    slideLabels(s.midSlide, kMidSwX - 36, { "700", "1.6K", "3.2K" });
+    slideLabels(s.midSlide, kMidSwX - 36, { "1K", "2K", "4K" });
 }
 
 void Hamamatsu1000Editor::resized() {

@@ -64,7 +64,7 @@ inline float detentGainDb(int d) {
     return 76.0f - (kDetentSensDbm[d] + 60.0f); // 76,66,60,54,48,42,36,30,24,12
 }
 
-inline constexpr float kMidFreqs[3] = { 700.f, 1600.f, 3200.f }; // as on the owner's rack unit
+inline constexpr float kMidFreqs[3] = { 1000.f, 2000.f, 4000.f }; // per manual + hardware photo
 
 // 0 VU = +4 dBm = -18 dBFS reference for the meters.
 inline constexpr float kVuRefDbFs = -18.0f;
@@ -80,7 +80,7 @@ struct ChannelParams {
     int   lpfMode     = 0;     // 0=off, 1=20 kHz, 2=16 kHz
     float bassDb      = 0.0f;  // ±15 dB shelf
     float midDb       = 0.0f;  // ±15 dB bell
-    int   midSel      = 1;     // 0=700 Hz, 1=1.6 kHz, 2=3.2 kHz
+    int   midSel      = 1;     // 0=1 kHz, 1=2 kHz, 2=4 kHz
     float trebleDb    = 0.0f;  // ±15 dB shelf
     float gain        = 7.0f;  // per-channel GAIN knob, 0..10 (7 = nominal)
     int   outMode     = 0;     // 0=Tamura, 1=Cinemag, 2=Sumthang
