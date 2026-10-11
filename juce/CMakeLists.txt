@@ -16,8 +16,12 @@ project(Hamamatsu1000 VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Use the vendored JUCE 8.0.6 (same as Bitey/Synchrophonic builds).
-set(JUCE_DIR "$ENV{HOME}/workspace/vendor/juce-8.0.6")
+# JUCE 8.0.6: use $JUCE_DIR if set (CI), else the vendored copy.
+if (DEFINED ENV{JUCE_DIR} AND NOT "$ENV{JUCE_DIR}" STREQUAL "")
+    set(JUCE_DIR "$ENV{JUCE_DIR}")
+else ()
+    set(JUCE_DIR "$ENV{HOME}/workspace/vendor/juce-8.0.6")
+endif ()
 if (NOT EXISTS "${JUCE_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "JUCE not found at ${JUCE_DIR}")
 endif ()
