@@ -1,0 +1,77 @@
+# Builds Hamamatsu 1000 on every push and uploads downloadable plugins.
+#
+# Drop this into the repo at .github/workflows/build.yml, push, then:
+# Actions tab -> pick a run -> download the Hamamatsu1000-macOS /
+# Hamamatsu1000-Windows artifacts. Those contain the VST3/AU files.
+#
+# NOTE: macOS run is the deliverable (Nathan's Mac). Windows run kept
+# for parity with the Bitey pipeline.
+
+name: Build Hamamatsu1000
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  macos:
+    name: macOS (VST3 + AU, Apple Silicon + Intel)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build -G Xcode -DCMAKE_BUILD_TYPE=Release
+                 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+                 -S juce
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Build installer PKG
+        run: |
+          PKGROOT=pkgroot
+          mkdir -p "$PKGROOT/Library/Audio/Plug-Ins/VST3"
+          mkdir -p "$PKGROOT/Library/Audio/Plug-Ins/Components"
+          mkdir -p "$PKGROOT/Applications"
+          cp -R "build/Hamamatsu1000_artefacts/Release/VST3/Hamamatsu 1000.vst3" "$PKGROOT/Library/Audio/Plug-Ins/VST3/"
+          cp -R "build/Hamamatsu1000_artefacts/Release/AU/Hamamatsu 1000.component" "$PKGROOT/Library/Audio/Plug-Ins/Components/"
+          if [ -d "build/Hamamatsu1000_artefacts/Release/Standalone/Hamamatsu 1000.app" ]; then
+            cp -R "build/Hamamatsu1000_artefacts/Release/Standalone/Hamamatsu 1000.app" "$PKGROOT/Applications/"
+          fi
+          pkgbuild --root "$PKGROOT" \
+            --identifier com.sabatinoaudio.hamamatsu1000 \
+            --version 0.1.0 \
+            --install-location / \
+            Hamamatsu1000-0.1.0-macOS.pkg
+
+      - name: Upload plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hamamatsu1000-macOS-${{ github.run_number }}
+          path: build/Hamamatsu1000_artefacts/Release/
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hamamatsu1000-Installer-macOS-${{ github.run_number }}
+          path: Hamamatsu1000-0.1.0-macOS.pkg
+
+  windows:
+    name: Windows (VST3)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release -S juce
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Upload plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hamamatsu1000-Windows-${{ github.run_number }}
+          path: build/Hamamatsu1000_artefacts/Release/
