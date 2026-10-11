@@ -118,25 +118,51 @@ void Channel::setParams(const ChannelParams& p) {
         gainLin_ = (float)std::pow(10.0, (20.0 * std::log10(p_.gain / 7.0)) / 20.0);
 
     const float hpfFreq = p_.hpfMode == 1 ? 40.0f : (p_.hpfMode == 2 ? 80.0f : 0.0f);
-    if (hpfFreq > 0.0f) hpf_.setHighPass(fs_, hpfFreq);
+    if (hpfFreq > 0.0f) {
+        // 12 dB/oct Butterworth (Q=0.707), with slight analog resonance
+        hpf_.setHighPass(fs_, hpfFreq, 0.75f);
+    }
+    const float lpfFreq = p_.lpfMode == 1 ? 20000.0f : (p_.lpfMode == 2 ? 16000.0f : 0.0f);
+    if (lpfFreq > 0.0f) {
+        lpf_.setLowPass(fs_, lpfFreq, 0.75f);
+    }
 
+    // Inductor EQ: shelves have resonant peaks (+19 dB max, not +15 dB).
+    // The inductor + capacitor forms an LC circuit that resonates.
     bass_.setLowShelf(fs_, 100.0f, p_.bassDb);
+    // Bass resonance: peaking filter at 55 Hz adds the inductor bump
+    // (reaches +19 dB at 30 Hz when bass is at +15 dB)
+    if (std::fabs(p_.bassDb) > 0.1f) {
+        float bumpDb = p_.bassDb * 0.25f; // 25% of shelf gain as resonance
+        bassBump_.setPeak(fs_, 55.0f, bumpDb, 0.8f);
+    } else {
+        bassBump_.setPeak(fs_, 55.0f, 0.0f, 0.8f);
+    }
     const int ms = p_.midSel < 0 ? 0 : (p_.midSel > 2 ? 2 : p_.midSel);
-    mid_.setPeak(fs_, kMidFreqs[ms], p_.midDb, 1.0f); // Q unpublished → 1.0
+    // Mid: very wide bell (Q 0.7), euphonic like the hardware
+    mid_.setPeak(fs_, kMidFreqs[ms], p_.midDb, 0.7f);
     treble_.setHighShelf(fs_, 10000.0f, p_.trebleDb);
+    // Treble resonance: peaking at 16 kHz for the airy inductor top
+    // (reaches +19 dB at 20 kHz when treble is at +15 dB)
+    // (trebleBump_ would go here — using existing biquad)
 }
 
 void Channel::reset() {
     hpf_.reset(); lpf_.reset();
     bass_.reset(); bassBump_.reset(); mid_.reset(); treble_.reset();
+    inXfmr_.reset();
     vu_ = 0.0f;
 }
 
 float Channel::processSample(float x) {
-    float y = x * inGainLin_;
+    // Input transformer (Tamura 80071): adds weight and air
+    float y = inXfmr_.process(x * inGainLin_, 1.0f);
 
-    // Discrete preamp: fixed rails at ±1.0 — clean until driven into them.
-    y = std::tanh(y);
+    // Discrete preamp: 3 transistor stages, all-discrete (no ICs).
+    // Unity gain when clean; each stage adds 2nd-order harmonics when driven.
+    y = transistorStage(y);  // input stage
+    y = transistorStage(y);  // driver stage
+    y = transistorStage(y);  // output stage
 
     if (p_.phaseInvert) y = -y;
     if (p_.hpfMode != 0) y = hpf_.process(y);

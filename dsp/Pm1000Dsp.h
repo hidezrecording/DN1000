@@ -89,6 +89,47 @@ struct ChannelParams {
 // —————————————————————————————————————————————————————————————————————
 // Channel — input → EQ → per-channel GAIN (mono), with VU tap
 // —————————————————————————————————————————————————————————————————————
+// —————————————————————————————————————————————————————————————————————
+// Analog component models
+// —————————————————————————————————————————————————————————————————————
+// Transformer: flux-based hysteresis. The core saturates based on the
+// integral of voltage (flux), not instantaneous voltage. This gives the
+// "glued" low end and airy top of real iron.
+struct Transformer {
+    float flux = 0.0f;      // magnetic flux (integrator state)
+    float lastOut = 0.0f;
+    // Tamura 80071: 1:1, 600 ohm, saturates gracefully
+    // Unity gain when clean; saturation adds harmonics when driven.
+    float process(float x, float drive = 1.0f) {
+        // Flux is the integral of voltage
+        flux += x * 0.0005f * drive;
+        flux *= 0.9995f; // core loss (hysteresis)
+        // Saturation: tanh of flux
+        float sat = std::tanh(flux * 8.0f);
+        // When clean, sat ≈ flux*8 (linear), so output ≈ x.
+        // When driven, sat compresses, adding harmonics.
+        // Compensate: output = x + (sat - flux*8) * 0.05 (only the nonlinear part)
+        float linear = flux * 8.0f;
+        float nonlinear = sat - linear;
+        return x + nonlinear * 0.05f * drive;
+    }
+    void reset() { flux = 0.0f; lastOut = 0.0f; }
+};
+
+// Discrete transistor stage: asymmetric, 2nd-order dominant.
+// Unity gain when clean; adds harmonics when driven.
+// NPN transistors clip the top harder than the bottom.
+inline float transistorStage(float x) {
+    // Very gentle: subtle 2nd-order, saturates only when very hot.
+    // For small x, ≈ x (unity).
+    float y;
+    if (x > 0.0f)
+        y = x / (1.0f + 0.05f * x * x); // soft saturation, 2nd harmonic
+    else
+        y = x / (1.0f + 0.08f * x * x); // slightly harder on negative
+    return y;
+}
+
 class Channel {
 public:
     void prepare(double sampleRate);
@@ -106,6 +147,7 @@ private:
     float gainLin_   = 1.0f;
     Biquad hpf_, lpf_, bass_, bassBump_, mid_, treble_;
     float vu_ = 0.0f;
+    Transformer inXfmr_;
 };
 
 // —————————————————————————————————————————————————————————————————————
