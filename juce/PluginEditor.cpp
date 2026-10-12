@@ -507,7 +507,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
 
     // Toggle markers
     drawToggleMarkers(g, s.micToggle, "MIC", "LINE", PmStyle::silk()); // White: sits on dark strip
-    drawStripLabel(g, "AMP", kAmpX, cy + 37, 1.0f);
+    drawStripLabel(g, "AMP", kAmpX, cy + 37, 1.30f); // Stretched like the other labels
     // T / C / S to the LEFT of the switch now
     g.setColour(juce::Colours::white.withAlpha(0.92f));
     g.setFont(PmStyle::condensed(10.5f));

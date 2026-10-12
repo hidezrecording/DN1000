@@ -3,10 +3,9 @@
 #include <cmath>
 
 juce::Font PmStyle::condensed(float size) {
-    // Yamaha PM1000: clean grotesque sans, slightly rounded, bold
-    // Helvetica Bold is the closest system match to the silkscreen
-    // Note: Yamaha uses a STRETCHED (extended) variant - apply via drawStretchedText
-    return juce::Font("Helvetica", size, juce::Font::bold);
+    // Yamaha PM1000: clean grotesque sans silkscreen
+    // Regular weight: bold read slightly too heavy (Nathan 2026-10-12)
+    return juce::Font("Helvetica", size, juce::Font::plain);
 }
 
 // Draw text with horizontal stretch (Yamaha PM1000 uses extended letterforms)
