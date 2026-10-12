@@ -552,12 +552,42 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     const float cy = 38.0f; // Lowered: logo almost sits on the top module (strip top y=50)
     const float ey = cy - 3.0f; // Emblem centre: raised to line up with the B's centre
 
-    // "BITEY" text: Swiss 911 Compressed match = Helvetica Neue Condensed
-    // Black (macOS system font), slight vertical stretch like the Yamaha
-    // wordmark, tightened spacing. Top-right, Y above the AMP switch.
+    // "BITEY" wordmark: match the Yamaha logo as closely as possible:
+    // black-weight compressed grotesque (Swiss 911 Compressed family),
+    // tight spacing, slight vertical stretch, NEVER thinned.
+    // Pick the font at runtime from what is actually installed so the
+    // named font cannot silently fall back to a regular-width sans.
     g.setColour(green);
-    juce::Font font("Helvetica Neue Condensed Black", 26.0f, juce::Font::plain);
-    font = font.withExtraKerningFactor(-0.04f);
+    static juce::String wordmarkFontName;
+    static bool wordmarkFontSearched = false;
+    static bool wordmarkNeedsCondense = false;
+    if (!wordmarkFontSearched) {
+        wordmarkFontSearched = true;
+        const auto names = juce::Font::findAllTypefaceNames();
+        auto findName = [&names](std::initializer_list<const char*> mustContain) {
+            for (const auto& n : names) {
+                bool ok = true;
+                for (auto* part : mustContain)
+                    if (!n.containsIgnoreCase(part)) { ok = false; break; }
+                if (ok) return n;
+            }
+            return juce::String();
+        };
+        wordmarkFontName = findName({"Helvetica", "Condensed", "Black"});
+        if (wordmarkFontName.isEmpty())
+            wordmarkFontName = findName({"Condensed", "Black"});
+        if (wordmarkFontName.isEmpty())
+            wordmarkFontName = findName({"Arial", "Narrow"});
+        if (wordmarkFontName.isEmpty()) {
+            wordmarkFontName = "Helvetica";
+            wordmarkNeedsCondense = true;
+        } else if (wordmarkFontName.containsIgnoreCase("Arial")) {
+            wordmarkNeedsCondense = true; // Arial Narrow still wider than Swiss 911
+        }
+    }
+    juce::Font font(wordmarkFontName, 26.0f,
+                    wordmarkNeedsCondense ? juce::Font::bold : juce::Font::plain);
+    font = font.withExtraKerningFactor(-0.06f); // Yamaha spacing is tight
     g.setFont(font);
     const juce::String text = "BITEY";
     const float textW = (float)font.getStringWidth(text);
@@ -566,11 +596,16 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     // Y's right edge lines up with the right edge of the top module (848)
     const float textRight = 848.0f;
     const float textX = textRight - textW;
-    const float ex = textX - gap - er; // Emblem center x (left of the B)
+    const float sx = wordmarkNeedsCondense ? 0.88f : 1.0f;
+    const float drawnLeft = textRight - textW * sx; // where the B actually lands
+    const float ex = drawnLeft - gap - er; // Emblem center x (left of the B)
     {
-        // Vertical stretch (Swiss 911 / approved HTML logo used scaleY 1.15)
+        // Yamaha proportions: tall and narrow (HTML logo used scaleY 1.15).
+        // If the resolved font is not a true condensed black, compress X
+        // as well so the shape lands in the same place.
         juce::Graphics::ScopedSaveState ss(g);
-        g.addTransform(juce::AffineTransform::scale(1.0f, 1.12f, textX + textW * 0.5f, cy));
+        // Pivot on the right edge so the Y stays pinned to the module edge
+        g.addTransform(juce::AffineTransform::scale(sx, 1.12f, textRight, cy));
         g.drawText(text, (int)textX, (int)(cy - 16), (int)(textW + 4), 32,
                    juce::Justification::left);
     }
@@ -595,19 +630,19 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
         g.drawLine(bx, by + 9, bx, by + 4, mw);
         // Yoke
         juce::Path yoke;
-        yoke.startNewSubPath(bx - 4, by - 1);
-        yoke.quadraticTo(bx - 4, by + 4, bx, by + 4);
-        yoke.quadraticTo(bx + 4, by + 4, bx + 4, by - 1);
+        yoke.startNewSubPath(bx - 3.5f, by - 1);
+        yoke.quadraticTo(bx - 3.5f, by + 4, bx, by + 4);
+        yoke.quadraticTo(bx + 3.5f, by + 4, bx + 3.5f, by - 1);
         g.strokePath(yoke, juce::PathStrokeType(mw));
-        // Capsule (tall)
+        // Capsule (tall, slightly narrower so the three heads read clearly)
         juce::Path cap;
-        cap.startNewSubPath(bx - 3.5f, by - 1);
-        cap.lineTo(bx - 3.5f, by - 7);
-        cap.quadraticTo(bx - 3.5f, by - 10, bx, by - 10);
-        cap.quadraticTo(bx + 3.5f, by - 10, bx + 3.5f, by - 7);
-        cap.lineTo(bx + 3.5f, by - 1);
-        cap.quadraticTo(bx + 3.5f, by + 1.5f, bx, by + 1.5f);
-        cap.quadraticTo(bx - 3.5f, by + 1.5f, bx - 3.5f, by - 1);
+        cap.startNewSubPath(bx - 3.0f, by - 1);
+        cap.lineTo(bx - 3.0f, by - 7);
+        cap.quadraticTo(bx - 3.0f, by - 10, bx, by - 10);
+        cap.quadraticTo(bx + 3.0f, by - 10, bx + 3.0f, by - 7);
+        cap.lineTo(bx + 3.0f, by - 1);
+        cap.quadraticTo(bx + 3.0f, by + 1.5f, bx, by + 1.5f);
+        cap.quadraticTo(bx - 3.0f, by + 1.5f, bx - 3.0f, by - 1);
         g.strokePath(cap, juce::PathStrokeType(mw));
         g.restoreState();
     }
