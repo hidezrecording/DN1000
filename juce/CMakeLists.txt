@@ -32,7 +32,7 @@ juce_add_plugin(DN1000
     PLUGIN_NAME "DN1000"
     DESCRIPTION "PM1000-style channel strip: discrete-style preamp, 3-band EQ, rack output section."
     PLUGIN_MANUFACTURER_CODE SabA
-    PLUGIN_CODE DN10
+    PLUGIN_CODE Hm10
     FORMATS VST3 AU Standalone
     PRODUCT_NAME "DN1000"
     IS_SYNTH FALSE
@@ -95,13 +95,8 @@ target_compile_definitions(PmSnapshot PRIVATE
     JUCE_STANDALONE_APPLICATION=1
 )
 
-# DN1000 Test Host — full plugin GUI + file playback (proper Mac app bundle)
-juce_add_gui_app(DN1000TestHost
-    PRODUCT_NAME "DN1000 Test Host"
-    COMPANY_NAME "Sabatino Audio"
-    BUNDLE_ID com.sabatinoaudio.dn1000testhost
-)
-target_sources(DN1000TestHost PRIVATE
+# DN1000 Test Host — full plugin GUI + file playback
+add_executable(DN1000TestHost
     TestHost/TestHost.cpp
     PluginProcessor.cpp
     PluginEditor.cpp
