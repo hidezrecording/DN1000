@@ -9,7 +9,7 @@
 struct PmStyle {
     static juce::Colour face()  { return juce::Colour(0xff8e9194); }
     static juce::Colour faceDark() { return juce::Colour(0xff6f7276); }
-    static juce::Colour strip() { return juce::Colour(0xff181310); }
+    static juce::Colour strip() { return juce::Colour(0xff211a13); } // A hair lighter/browner (Yamaha modules)
     static juce::Colour silk()  { return juce::Colour(0xfff2f2f2); }
     static juce::Colour dim()   { return juce::Colour(0xffcfcfcf); }
 

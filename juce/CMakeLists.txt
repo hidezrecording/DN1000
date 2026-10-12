@@ -66,7 +66,7 @@ target_compile_definitions(DN1000 PRIVATE
 
 # Embedded silkscreen font (Oswald Bold, OFL) — condensed grotesque
 # matching the PM1000's panel lettering.
-juce_add_binary_data(PmAssets SOURCES Assets/Oswald-Bold.ttf Assets/PermanentMarker-Regular.ttf)
+juce_add_binary_data(PmAssets SOURCES Assets/Oswald-Bold.ttf Assets/PermanentMarker-Regular.ttf Assets/texgyreheroscn-bold.otf)
 target_link_libraries(DN1000 PRIVATE PmAssets)
 
 # ─────────────────────────────────────────────────────────────────────

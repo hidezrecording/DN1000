@@ -79,8 +79,8 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
                                 juce::Colour(0xff050506), centre.x, centre.y + radius, false);
     g.setGradientFill(shaftG);
     g.fillEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
-    // Glossy specular highlight (top-left, fixed - subtle continuous light source)
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.15f));
+    // Glossy specular highlight (top-left, fixed light source, PV-style)
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.20f));
     g.fillEllipse(centre.x - radius * 0.65f, centre.y - radius * 0.75f,
                   radius * 0.7f, radius * 0.45f);
 
@@ -105,6 +105,16 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
     // (Rim light and sheen removed — arcs render as ghost lines)
     g.setColour(juce::Colour(0xff000000).withAlpha(0.5f));
     g.drawEllipse(centre.x - br, centre.y - br, br * 2.0f, br * 2.0f, 1.5f);
+
+    // Soft sheen on the exposed black flute (skirt ring), top-left, fixed
+    // light like the PV knobs — a soft gradient spot, not a hard arc
+    {
+        const float fx = centre.x - radius * 0.66f, fy = centre.y - radius * 0.66f;
+        juce::ColourGradient sheen(juce::Colour(0xffffffff).withAlpha(0.13f), fx, fy,
+                                   juce::Colour(0x00ffffff), fx + radius * 0.30f, fy + radius * 0.30f, true);
+        g.setGradientFill(sheen);
+        g.fillEllipse(fx - radius * 0.30f, fy - radius * 0.30f, radius * 0.60f, radius * 0.60f);
+    }
 
     // Pointer
     const auto tip = centre.getPointOnCircumference(br * 0.82f, angle);

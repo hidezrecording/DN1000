@@ -1,4 +1,5 @@
 #include "PluginEditor.h"
+#include "BinaryData.h"
 #include <random>
 
 namespace {
@@ -552,41 +553,17 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     const float cy = 38.0f; // Lowered: logo almost sits on the top module (strip top y=50)
     const float ey = cy - 3.0f; // Emblem centre: raised to line up with the B's centre
 
-    // "BITEY" wordmark: match the Yamaha logo as closely as possible:
-    // black-weight compressed grotesque (Swiss 911 Compressed family),
-    // tight spacing, slight vertical stretch, NEVER thinned.
-    // Pick the font at runtime from what is actually installed so the
-    // named font cannot silently fall back to a regular-width sans.
+    // "BITEY" wordmark: match the Yamaha logo as closely as possible.
+    // The font is EMBEDDED in the plugin (TeX Gyre Heros Condensed Bold,
+    // a Helvetica clone in the Swiss 911 Compressed family) so the
+    // wordmark renders identically on every machine, Mac or Windows.
+    // Black weight, tight spacing, never thinned.
     g.setColour(green);
-    static juce::String wordmarkFontName;
-    static bool wordmarkFontSearched = false;
-    static bool wordmarkNeedsCondense = false;
-    if (!wordmarkFontSearched) {
-        wordmarkFontSearched = true;
-        const auto names = juce::Font::findAllTypefaceNames();
-        auto findName = [&names](std::initializer_list<const char*> mustContain) {
-            for (const auto& n : names) {
-                bool ok = true;
-                for (auto* part : mustContain)
-                    if (!n.containsIgnoreCase(part)) { ok = false; break; }
-                if (ok) return n;
-            }
-            return juce::String();
-        };
-        wordmarkFontName = findName({"Helvetica", "Condensed", "Black"});
-        if (wordmarkFontName.isEmpty())
-            wordmarkFontName = findName({"Condensed", "Black"});
-        if (wordmarkFontName.isEmpty())
-            wordmarkFontName = findName({"Arial", "Narrow"});
-        if (wordmarkFontName.isEmpty()) {
-            wordmarkFontName = "Helvetica";
-            wordmarkNeedsCondense = true;
-        } else if (wordmarkFontName.containsIgnoreCase("Arial")) {
-            wordmarkNeedsCondense = true; // Arial Narrow still wider than Swiss 911
-        }
-    }
-    juce::Font font(wordmarkFontName, 26.0f,
-                    wordmarkNeedsCondense ? juce::Font::bold : juce::Font::plain);
+    static juce::Typeface::Ptr wordmarkTf = juce::Typeface::createSystemTypefaceFor(
+        BinaryData::texgyreheroscnbold_otf,
+        (size_t)BinaryData::texgyreheroscnbold_otfSize);
+    juce::Font font(wordmarkTf);
+    font.setHeight(26.0f);
     font = font.withExtraKerningFactor(-0.06f); // Yamaha spacing is tight
     g.setFont(font);
     const juce::String text = "BITEY";
@@ -596,7 +573,7 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     // Y's right edge lines up with the right edge of the top module (848)
     const float textRight = 848.0f;
     const float textX = textRight - textW;
-    const float sx = wordmarkNeedsCondense ? 0.88f : 1.0f;
+    const float sx = 1.0f; // Embedded font is already condensed
     const float drawnLeft = textRight - textW * sx; // where the B actually lands
     const float ex = drawnLeft - gap - er; // Emblem center x (left of the B)
     {
