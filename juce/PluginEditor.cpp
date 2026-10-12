@@ -549,8 +549,8 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     // Bitey logo: mic emblem immediately LEFT of "BITEY", black
     // Centred as a group above the top module
     const auto green = juce::Colours::black; // Black (Nathan 2026-10-12)
-    const float cy = 25.0f; // Centered between plugin top and strip top
-    const float cx = kW * 0.5f;
+    const float cy = 38.0f; // Lowered: logo almost sits on the top module (strip top y=50)
+    const float ey = cy - 3.0f; // Emblem centre: raised to line up with the B's centre
 
     // "BITEY" text: Swiss 911 Compressed match = Helvetica Neue Condensed
     // Black (macOS system font), slight vertical stretch like the Yamaha
@@ -563,8 +563,8 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     const float textW = (float)font.getStringWidth(text);
     const float er = 10.0f; // Emblem radius (diameter 20 = height of Y)
     const float gap = 2.0f; // Emblem sits immediately left of the B (closer)
-    // Y is the last fifth of the text: align its centre over the AMP switch
-    const float textRight = 825.0f + textW * 0.1f;
+    // Y's right edge lines up with the right edge of the top module (848)
+    const float textRight = 848.0f;
     const float textX = textRight - textW;
     const float ex = textX - gap - er; // Emblem center x (left of the B)
     {
@@ -575,8 +575,8 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
                    juce::Justification::left);
     }
 
-    // Mic emblem circle
-    g.drawEllipse(ex - er, cy - er, er*2, er*2, 1.5f);
+    // Mic emblem circle (centre on ey, aligned with the B)
+    g.drawEllipse(ex - er, ey - er, er*2, er*2, 1.5f);
 
     // Three mics (Yamaha-style, tips form equilateral triangle)
     // FIXED: rotate around emblem center (was rotating around origin, mics flew off)
@@ -585,10 +585,10 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     for (int i = 0; i < 3; ++i) {
         const float angle = juce::MathConstants<float>::pi * 2.0f * i / 3.0f;
         g.saveState();
-        // Rotate around (ex, cy) so mics stay in the circle
-        g.addTransform(juce::AffineTransform::rotation(angle, ex, cy));
+        // Rotate around (ex, ey) so mics stay in the circle
+        g.addTransform(juce::AffineTransform::rotation(angle, ex, ey));
         // Mic drawn relative to emblem center: base down, capsule up
-        const float bx = ex, by = cy;
+        const float bx = ex, by = ey;
         // Base
         g.drawLine(bx - 3, by + 9, bx + 3, by + 9, mw);
         // Stand
