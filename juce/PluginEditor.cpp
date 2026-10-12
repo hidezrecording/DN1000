@@ -412,7 +412,7 @@ void DN1000Editor::drawBoardTape(juce::Graphics& g) {
     const float tx = (973.0f - tw) * 0.5f, ty = 359.0f;
     const float cx = tx + tw * 0.5f, cy = ty + th * 0.5f;
     juce::Graphics::ScopedSaveState ss(g);
-    g.addTransform(juce::AffineTransform::rotation(-0.026f, cx, cy)); // ~1.5 deg
+    g.addTransform(juce::AffineTransform::rotation(-0.015f, cx, cy)); // ~0.86 deg (less tilt)
     // Torn tape shape: jagged left/right edges (ripped from a roll)
     juce::Path tapePath;
     std::mt19937 rng(42);
