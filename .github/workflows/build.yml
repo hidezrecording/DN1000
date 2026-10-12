@@ -48,10 +48,30 @@ jobs:
           if [ -d "build/DN1000_artefacts/Release/Standalone/DN1000.app" ]; then
             cp -R "build/DN1000_artefacts/Release/Standalone/DN1000.app" "$PKGROOT/Applications/"
           fi
+          # Preinstall script: remove old versions
+          mkdir -p pkg_scripts
+          cat > pkg_scripts/preinstall <<'SCRIPT'
+#!/bin/bash
+# Remove old Hamamatsu 1000 and DN1000 installations
+rm -rf "/Library/Audio/Plug-Ins/VST3/Hamamatsu 1000.vst3"
+rm -rf "/Library/Audio/Plug-Ins/Components/Hamamatsu 1000.component"
+rm -rf "/Applications/Hamamatsu 1000.app"
+rm -rf "$HOME/Library/Audio/Plug-Ins/VST3/Hamamatsu 1000.vst3"
+rm -rf "$HOME/Library/Audio/Plug-Ins/Components/Hamamatsu 1000.component"
+# Remove old DN1000 (for clean reinstall)
+rm -rf "/Library/Audio/Plug-Ins/VST3/DN1000.vst3"
+rm -rf "/Library/Audio/Plug-Ins/Components/DN1000.component"
+rm -rf "/Applications/DN1000.app"
+rm -rf "$HOME/Library/Audio/Plug-Ins/VST3/DN1000.vst3"
+rm -rf "$HOME/Library/Audio/Plug-Ins/Components/DN1000.component"
+exit 0
+SCRIPT
+          chmod +x pkg_scripts/preinstall
           pkgbuild --root "$PKGROOT" \
             --identifier com.sabatinoaudio.dn1000 \
             --version 0.1.0 \
             --install-location / \
+            --scripts pkg_scripts \
             DN1000-0.1.0-macOS.pkg
 
       - name: Upload plugins
