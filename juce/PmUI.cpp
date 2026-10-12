@@ -259,11 +259,12 @@ void PmLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int w,
                slot.getRight() - 1.5f, slot.getBottom() - 3.0f, 1.2f);
 
     // Tab: sits inside the slot, ~1/3 of its height, 3 detents
-    const float proportion = juce::jlimit(0.0f, 1.0f,
-        (sliderPos - minPos) / (maxPos - minPos));
+    // Use slider value directly (0=bottom, 2=top) for predictable positioning
+    const float val = juce::jlimit(0.0f, 2.0f, (float)slider.getValue());
+    const float proportion = val / 2.0f; // 0.0=bottom, 1.0=top
     const float tabH = 22.0f, tabW = slotW - 3.0f;
-    const float travel = slot.getHeight() - tabH + 14.0f;
-    const float ty = slot.getY() - 7.0f + (1.0f - proportion) * travel;
+    const float travel = slot.getHeight() - tabH - 6.0f;
+    const float ty = slot.getY() + 3.0f + (1.0f - proportion) * travel;
     juce::Rectangle<float> tab(cx - tabW * 0.5f, ty, tabW, tabH);
     // Gap shadow around the tab (it sits IN the opening)
     g.setColour(juce::Colour(0xff000000).withAlpha(0.65f));
