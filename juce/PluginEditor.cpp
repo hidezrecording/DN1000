@@ -43,7 +43,7 @@ void ClipBulb::paint(juce::Graphics& g) {
 
     const float lvl = juce::jlimit(0.0f, 1.2f, displayLevel_);
     juce::Colour coreCol;
-    if (lvl < 0.6f) coreCol = juce::Colour(0xffffff00);
+    if (lvl < 0.6f) coreCol = juce::Colour(0xff2fe07a); // bulb green (not the selection glow)
     else if (lvl < 0.85f) coreCol = juce::Colour(0xffffc020);
     else coreCol = juce::Colour(0xffff3020);
 
@@ -396,7 +396,7 @@ void DN1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
                 const float ti = (anglesDeg[i] - aMin) / (aMax - aMin);
                 const float w = juce::jmax(0.0f, 1.0f - std::fabs(vt - ti) / 0.20f);
                 if (w <= 0.02f) continue;
-                g.setColour(juce::Colour(0xffffff00).withAlpha(w * w));
+                g.setColour(juce::Colour(0xffffe6a3).withAlpha(w * w));
             }
             g.drawText(labels[i], (int)(pt.x - 22), (int)(pt.y - 8), 44, 16,
                        juce::Justification::centred);
@@ -407,7 +407,7 @@ void DN1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
 void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
                                             juce::StringRef top,
                                             juce::StringRef bottom,
-                                            juce::Colour col) {
+                                            juce::Colour col, bool allowGlow) {
     // Labels sit right up against the visible toggle hardware (bezel is
     // ~22px at the component centre; anchor to centre, not the 56px bounds)
     const auto b = t.getBounds();
@@ -417,10 +417,10 @@ void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
     // The label on the side the bat points to glows bright green
     const bool invert = t.getProperties().getWithDefault("invertToggle", false);
     const bool topActive = (t.getToggleState() != invert);
-    const juce::Colour glow(0xffffff00);
-    g.setColour(topActive ? glow : col);
+    const juce::Colour glow(0xffffe6a3);
+    g.setColour(allowGlow && topActive ? glow : col);
     g.drawText(top, cx - 24, cy - 28, 48, 14, juce::Justification::centred);
-    g.setColour(topActive ? col : glow);
+    g.setColour(allowGlow && !topActive ? glow : col);
     g.drawText(bottom, cx - 24, cy + 15, 48, 14, juce::Justification::centred);
 }
 
@@ -434,11 +434,10 @@ void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
 
 void DN1000Editor::drawBoardTape(juce::Graphics& g) {
     const float tw = 224.0f, th = 28.8f; // 80% of the old size
-    // Left edge aligned with the modules' left edge; vertically centred
-    // in the band between the top of the rack and the top module's top
-    // (mirror of its old home below the lower module).
-    const float tx = (float)kStripX;
-    const float bandTop = 0.0f, bandBot = (float)kStripAY;
+    // Centred on the module, in the band between the lower module's
+    // bottom and the bottom of the rack.
+    const float tx = (float)kStripX + ((float)kStripW - tw) * 0.5f;
+    const float bandTop = (float)(kStripBY + kStripH), bandBot = 400.0f;
     const float ty = (bandTop + bandBot) * 0.5f - th * 0.5f;
     const float cx = tx + tw * 0.5f, cy = ty + th * 0.5f;
     juce::Graphics::ScopedSaveState ss(g);
@@ -549,7 +548,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     const char* modes[3] = { "T", "C", "S" };
     const int activeMode = (int)std::round(s.outMode.getValue()); // 0=S, 1=C, 2=T
     for (int i = 0; i < 3; ++i) {
-        g.setColour(activeMode == 2 - i ? juce::Colour(0xffffff00)
+        g.setColour(activeMode == 2 - i ? juce::Colour(0xffffe6a3)
                                         : juce::Colours::white.withAlpha(0.92f));
         g.drawText(modes[i], mx, cy - 36 + 6 + i * 30 - 7, 14, 14,
                    juce::Justification::centred);
@@ -568,7 +567,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
         const int active = 2 - (int)std::round(sl.getValue()); // labels run top=high value
         for (int i = 0; i < 3; ++i) {
             const float y = b.getY() + 6.0f + (float)i / 2.0f * (b.getHeight() - 12.0f);
-            g.setColour(i == active ? juce::Colour(0xffffff00)
+            g.setColour(i == active ? juce::Colour(0xffffe6a3)
                                     : juce::Colours::white.withAlpha(0.94f));
             g.drawText(labs[i], x, (int)(y - 7), 26, 14, juce::Justification::right);
         }
@@ -706,9 +705,9 @@ void DN1000Editor::paint(juce::Graphics& g) {
     drawHandle(g, kW - 22);
 
     // — Left block: phase toggles —
-    drawToggleMarkers(g, polA_, "0", "180", juce::Colours::black);
-    drawToggleMarkers(g, polB_, "0", "180", juce::Colours::black);
-    drawToggleMarkers(g, linkToggle_, "UNLINK", "LINK", juce::Colours::black);
+    drawToggleMarkers(g, polA_, "0", "180", juce::Colours::black, false);
+    drawToggleMarkers(g, polB_, "0", "180", juce::Colours::black, false);
+    drawToggleMarkers(g, linkToggle_, "UNLINK", "LINK", juce::Colours::black, false);
 
     // — Channel strips —
     for (int c = 0; c < 2; ++c) {
@@ -729,10 +728,10 @@ void DN1000Editor::paint(juce::Graphics& g) {
     // POWER word under the jewel, centred in the band between the two
     // modules; black when off, yellow backlight when on.
     g.setFont(PmStyle::condensed(11.0f));
-    g.setColour(pwr ? juce::Colour(0xffffff00) : juce::Colours::black);
+    g.setColour(juce::Colours::black); // always black; the jewel shows on/off
     g.drawText("POWER", 884 - 55, 193, 110, 14, juce::Justification::centred);
     // ON / OFF hug the toggle; the selected side glows yellow
-    drawToggleMarkers(g, powerToggle_, "ON", "OFF", juce::Colours::black);
+    drawToggleMarkers(g, powerToggle_, "ON", "OFF", juce::Colours::black, false);
     drawJewel(g, 884, 160, pwr);
 }
 

@@ -88,9 +88,9 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
             const float a = tickStart + (float)i / (nTicks - 1) * (tickEnd - tickStart);
             const auto p1 = centre.getPointOnCircumference(radius + 3.0f, a);
             const auto p2 = centre.getPointOnCircumference(radius + 8.0f, a);
-            g.setColour(juce::Colour(0xffffff00).withAlpha(0.22f * w));
+            g.setColour(juce::Colour(0xffffe6a3).withAlpha(0.16f * w));
             g.drawLine(p1.x, p1.y, p2.x, p2.y, 4.4f); // halo
-            g.setColour(juce::Colour(0xffffff00).withAlpha(0.95f * w));
+            g.setColour(juce::Colour(0xffffe6a3).withAlpha(0.95f * w));
             g.drawLine(p1.x, p1.y, p2.x, p2.y, 1.8f); // core
         }
     }
