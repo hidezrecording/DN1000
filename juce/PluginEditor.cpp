@@ -380,14 +380,27 @@ void DN1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
     const float radius = juce::jmin(b.getWidth(), b.getHeight()) * 0.5f;
     const auto centre = b.getCentre();
     const int n = labels.size();
-    g.setColour(PmStyle::silk());
     g.setFont(PmStyle::condensed(fontSize));
-    for (int i = 0; i < n; ++i) {
-        const float a = anglesDeg[i] * 0.0174533f;
-        const float ro = radialOffsets.empty() ? 22.0f : radialOffsets[i];
-        const auto pt = centre.getPointOnCircumference(radius + ro, a);
-        g.drawText(labels[i], (int)(pt.x - 22), (int)(pt.y - 8), 44, 16,
-                   juce::Justification::centred);
+    // Selection glow: a label lights bright green as the knob reaches it
+    const float aMin = anglesDeg.front(), aMax = anglesDeg.back();
+    const double vRange = s.getMaximum() - s.getMinimum();
+    const float vt = vRange > 0.0 ? (float)((s.getValue() - s.getMinimum()) / vRange) : 0.0f;
+    for (int pass = 0; pass < 2; ++pass) {
+        for (int i = 0; i < n; ++i) {
+            const float a = anglesDeg[i] * 0.0174533f;
+            const float ro = radialOffsets.empty() ? 22.0f : radialOffsets[i];
+            const auto pt = centre.getPointOnCircumference(radius + ro, a);
+            if (pass == 0) {
+                g.setColour(PmStyle::silk());
+            } else {
+                const float ti = (anglesDeg[i] - aMin) / (aMax - aMin);
+                const float w = juce::jmax(0.0f, 1.0f - std::fabs(vt - ti) / 0.20f);
+                if (w <= 0.02f) continue;
+                g.setColour(juce::Colour(0xff2fe07a).withAlpha(w * w));
+            }
+            g.drawText(labels[i], (int)(pt.x - 22), (int)(pt.y - 8), 44, 16,
+                       juce::Justification::centred);
+        }
     }
 }
 
@@ -400,9 +413,14 @@ void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
     const auto b = t.getBounds();
     const int cx = b.getCentreX();
     const int cy = b.getCentreY();
-    g.setColour(col);
     g.setFont(PmStyle::condensed(10.0f));
+    // The label on the side the bat points to glows bright green
+    const bool invert = t.getProperties().getWithDefault("invertToggle", false);
+    const bool topActive = (t.getToggleState() != invert);
+    const juce::Colour glow(0xff2fe07a);
+    g.setColour(topActive ? glow : col);
     g.drawText(top, cx - 24, cy - 28, 48, 14, juce::Justification::centred);
+    g.setColour(topActive ? col : glow);
     g.drawText(bottom, cx - 24, cy + 15, 48, 14, juce::Justification::centred);
 }
 
@@ -415,15 +433,20 @@ void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
 }
 
 void DN1000Editor::drawBoardTape(juce::Graphics& g) {
-    const float tw = 280.0f, th = 36.0f;
-    const float tx = (973.0f - tw) * 0.5f, ty = 351.0f; // Lifted up (white space under bottom-left corner)
+    const float tw = 224.0f, th = 28.8f; // 80% of the old size
+    // Left edge aligned with the lower module's left edge; vertically
+    // centred in the band between the lower module's bottom and the
+    // bottom of the rack.
+    const float tx = (float)kStripX;
+    const float bandTop = (float)(kStripBY + kStripH), bandBot = 400.0f;
+    const float ty = (bandTop + bandBot) * 0.5f - th * 0.5f;
     const float cx = tx + tw * 0.5f, cy = ty + th * 0.5f;
     juce::Graphics::ScopedSaveState ss(g);
     g.addTransform(juce::AffineTransform::rotation(-0.015f, cx, cy)); // ~0.86 deg (less tilt)
     // Torn tape shape: jagged left/right edges (ripped from a roll)
     juce::Path tapePath;
     std::mt19937 rng(42);
-    std::uniform_real_distribution<float> jag(-4.0f, 4.0f);
+    std::uniform_real_distribution<float> jag(-3.2f, 3.2f);
     const int nSeg = 12;
     tapePath.startNewSubPath(tx + jag(rng), ty);
     for (int i = 1; i <= nSeg; ++i) {
@@ -448,7 +471,7 @@ void DN1000Editor::drawBoardTape(juce::Graphics& g) {
         juce::Graphics::ScopedSaveState ss2(g);
         g.addTransform(juce::AffineTransform::scale(1.18f, 1.0f, cx, cy));
         g.setColour(juce::Colour(0xff232323));
-        g.setFont(PmStyle::marker(30.0f));
+        g.setFont(PmStyle::marker(24.0f));
         g.drawText("DN1000", tx, ty - 2.0f, tw, th + 4.0f,
                    juce::Justification::centred);
     }
@@ -520,14 +543,17 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     // Toggle markers
     drawToggleMarkers(g, s.micToggle, "MIC", "LINE", PmStyle::silk()); // White: sits on dark strip
     drawStripLabel(g, "AMP", kAmpX, cy + 37, 1.30f); // Stretched like the other labels
-    // T / C / S to the LEFT of the switch now
-    g.setColour(juce::Colours::white.withAlpha(0.92f));
+    // T / C / S to the LEFT of the switch now; the selected mode glows green
     g.setFont(PmStyle::condensed(10.5f));
     const int mx = kAmpX - 24;
     const char* modes[3] = { "T", "C", "S" };
-    for (int i = 0; i < 3; ++i)
+    const int activeMode = (int)std::round(s.outMode.getValue()); // 0=S, 1=C, 2=T
+    for (int i = 0; i < 3; ++i) {
+        g.setColour(activeMode == 2 - i ? juce::Colour(0xff2fe07a)
+                                        : juce::Colours::white.withAlpha(0.92f));
         g.drawText(modes[i], mx, cy - 36 + 6 + i * 30 - 7, 14, 14,
                    juce::Justification::centred);
+    }
     drawDetentLabels(g, s.inputKnob,
         { "-60", "-50", "-44", "-38", "-32", "-26", "-20", "-14", "-8", "+4" },
         { -135, -105, -75, -45, -15, 15, 45, 75, 105, 135 }, {}, 9.0f);
@@ -538,10 +564,12 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     // Slide-switch position labels (left of each switch)
     auto slideLabels = [&](juce::Slider& sl, int x, const juce::StringArray& labs) {
         const auto b = sl.getBounds().toFloat();
-        g.setColour(juce::Colours::white.withAlpha(0.94f));
         g.setFont(PmStyle::condensed(10.0f));
+        const int active = 2 - (int)std::round(sl.getValue()); // labels run top=high value
         for (int i = 0; i < 3; ++i) {
             const float y = b.getY() + 6.0f + (float)i / 2.0f * (b.getHeight() - 12.0f);
+            g.setColour(i == active ? juce::Colour(0xff2fe07a)
+                                    : juce::Colours::white.withAlpha(0.94f));
             g.drawText(labs[i], x, (int)(y - 7), 26, 14, juce::Justification::right);
         }
     };
@@ -588,15 +616,18 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     juce::GlyphArrangement ga;
     ga.addLineOfText(font, "B", 0.0f, 0.0f); // baseline at y=0
     const auto bb = ga.getBoundingBox(0, 1, true);
-    const float capH = bb.getHeight();
-    // drawText centres the font's line height in the box (box centre = cy)
-    const float baseline = cy + (font.getAscent() - font.getDescent()) * 0.5f;
-    const float er = capH * 0.5f;                    // emblem = height of the B
-    const float emblemCy = baseline + bb.getCentreY(); // emblem centre = B centre
+    // NOTE: GlyphArrangement's box is the whole LINE box (26.0 here), not
+    // the ink — sizing off it made the emblem 2x too tall. Render-measured
+    // against the real font (harness-verified 2026-10-12): the B's ink is
+    // 13.0 px tall at 26 pt, centred 0.5 px below the logo zone centre.
+    const float inkH = font.getHeight() * 0.5f;            // B ink height
+    const float discR = inkH * 0.5f;   // black disc = EXACT height of the B
+    const float ringR = discR + 1.8f;  // outer ring extends slightly past
+    const float emblemCy = cy + font.getHeight() * 0.019f; // B ink centre
     const float gap = 2.0f;
     // Where the B's ink actually lands after the scaleX (pivot: textRight)
     const float inkLeft = textRight + (textX + bb.getX() - textRight) * sx;
-    const float ex = inkLeft - gap - er; // Emblem center x (left of the B)
+    const float ex = inkLeft - gap - ringR; // Emblem center x (left of the B)
 
     {
         juce::Graphics::ScopedSaveState ss(g);
@@ -608,10 +639,10 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
 
     // Mic emblem, REVERSED like the Yamaha tuning-fork mark: a thin outer
     // ring, a black filled disc, and the microphones in white inside it.
-    // Exactly the height of the B, on the B's centreline.
-    const float discR = er - 2.4f; // black disc inside the ring (white gap between)
+    // The DISC is exactly the height of the B, centred on the B; the ring
+    // extends slightly past the letters.
     g.setColour(green);
-    g.drawEllipse(ex - er, emblemCy - er, er*2, er*2, 1.2f); // thin outer ring
+    g.drawEllipse(ex - ringR, emblemCy - ringR, ringR*2, ringR*2, 1.2f); // thin outer ring
     g.fillEllipse(ex - discR, emblemCy - discR, discR*2, discR*2); // black disc
 
     // Three white mics (Yamaha-style, tips form equilateral triangle),
@@ -704,10 +735,8 @@ void DN1000Editor::timerCallback() {
     // Update clip indicators from DSP levels
     clipA_.setLevel(proc_.getChannelALevel());
     clipB_.setLevel(proc_.getChannelBLevel());
-    // Repaint logo if amp mode changed (color changes)
-    const int mode = proc_.getOutMode();
-    if (mode != lastAmpMode_) {
-        lastAmpMode_ = mode;
-        repaint(); // Redraw logo with new color
-    }
+    // Repaint every tick: the selection glows track knob/switch values
+    // live, including host automation.
+    lastAmpMode_ = proc_.getOutMode();
+    repaint();
 }

@@ -74,17 +74,38 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
         g.drawLine(p1.x, p1.y, p2.x, p2.y, 1.6f);
     }
 
+    // Selection glow (PV-style): the tick at the knob's current value
+    // glows bright green; between ticks the two neighbours share the
+    // glow, handing off smoothly as the knob turns.
+    {
+        const double vmin = slider.getMinimum(), vmax = slider.getMaximum();
+        const float ft = vmax > vmin
+            ? (float)((slider.getValue() - vmin) / (vmax - vmin)) * (float)(nTicks - 1)
+            : 0.0f;
+        for (int i = 0; i < nTicks; ++i) {
+            const float w = juce::jmax(0.0f, 1.0f - std::fabs(ft - (float)i));
+            if (w <= 0.01f) continue;
+            const float a = tickStart + (float)i / (nTicks - 1) * (tickEnd - tickStart);
+            const auto p1 = centre.getPointOnCircumference(radius + 3.0f, a);
+            const auto p2 = centre.getPointOnCircumference(radius + 8.0f, a);
+            g.setColour(juce::Colour(0xff2fe07a).withAlpha(0.22f * w));
+            g.drawLine(p1.x, p1.y, p2.x, p2.y, 4.4f); // halo
+            g.setColour(juce::Colour(0xff2fe07a).withAlpha(0.95f * w));
+            g.drawLine(p1.x, p1.y, p2.x, p2.y, 1.8f); // core
+        }
+    }
+
     // Skirt — glossy black shaft (differentiates from faceplate)
     juce::ColourGradient shaftG(juce::Colour(0xff2a2a2e), centre.x, centre.y - radius,
                                 juce::Colour(0xff050506), centre.x, centre.y + radius, false);
     g.setGradientFill(shaftG);
     g.fillEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
     // Glossy specular highlight (top-left, fixed light source, PV-style)
-    // Brighter and sharper-edged so it actually reads on every pot
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.38f));
+    // Near-white and strong: reads as a studio-light reflection on the pot
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.58f));
     g.fillEllipse(centre.x - radius * 0.62f, centre.y - radius * 0.78f,
-                  radius * 0.55f, radius * 0.34f);
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.14f));
+                  radius * 0.58f, radius * 0.36f);
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.24f));
     g.fillEllipse(centre.x - radius * 0.72f, centre.y - radius * 0.86f,
                   radius * 0.85f, radius * 0.55f);
 
@@ -114,7 +135,7 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
     // light like the PV knobs — a soft gradient spot, not a hard arc
     {
         const float fx = centre.x - radius * 0.66f, fy = centre.y - radius * 0.66f;
-        juce::ColourGradient sheen(juce::Colour(0xffffffff).withAlpha(0.20f), fx, fy,
+        juce::ColourGradient sheen(juce::Colour(0xffffffff).withAlpha(0.32f), fx, fy,
                                    juce::Colour(0x00ffffff), fx + radius * 0.30f, fy + radius * 0.30f, true);
         g.setGradientFill(sheen);
         g.fillEllipse(fx - radius * 0.30f, fy - radius * 0.30f, radius * 0.60f, radius * 0.60f);
@@ -150,7 +171,7 @@ void PmLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& butt
     g.setGradientFill(bez);
     g.fillEllipse(pivot.x - bezR, pivot.y - bezR, bezR * 2.0f, bezR * 2.0f);
     // Bezel highlight (top-left)
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.6f));
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.85f));
     g.drawEllipse(pivot.x - bezR + 1.0f * s, pivot.y - bezR + 1.0f * s,
                   (bezR - 1.0f * s) * 2.0f, (bezR - 1.0f * s) * 2.0f, 1.5f);
     // Dark inner circle
@@ -187,8 +208,8 @@ void PmLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& butt
                               juce::Colour(0xff5a5a62), ballX + ballR, ballY + ballR, false);
     g.setGradientFill(ball);
     g.fillEllipse(ballX - ballR, ballY - ballR, ballR * 2.0f, ballR * 2.0f);
-    // Ball highlight (subtle, fixed light source)
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.4f));
+    // Ball highlight (fixed light source, near-white studio reflection)
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.65f));
     g.fillEllipse(ballX - ballR * 0.5f, ballY - ballR * 0.6f,
                   ballR * 0.6f, ballR * 0.45f);
     // Highlight ridge
@@ -255,6 +276,10 @@ void PmLookAndFeel::drawTriToggle(juce::Graphics& g, juce::Slider& slider) {
                                     juce::Colour(0xff5a5a61), pivot.x + bw, pivot.y, false);
         g.setGradientFill(steelR);
         g.fillRoundedRectangle(bat.withLeft(pivot.x + bw * 0.25f), bw);
+        // Specular streak (studio reflection, matches the big toggles)
+        g.setColour(juce::Colour(0xffffffff).withAlpha(0.9f));
+        g.fillRoundedRectangle(pivot.x - bw * 0.55f, pivot.y - len + 1.5f,
+                               bw * 0.32f, len - 3.0f, bw * 0.16f);
     }
     g.setColour(juce::Colour(0xff55555c));
     g.fillEllipse(pivot.x - 3.0f, pivot.y - 4.5f, 6.0f, 6.0f);
@@ -299,6 +324,14 @@ void PmLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int w,
                             juce::Colour(0xff121110), tab.getX(), tab.getBottom(), false);
     g.setGradientFill(tg);
     g.fillRoundedRectangle(tab, 2.0f);
+    // Studio reflection: soft white sheen across the top of the tab
+    juce::ColourGradient tsh(juce::Colour(0xffffffff).withAlpha(0.22f), tab.getX(), tab.getY(),
+                             juce::Colour(0x00ffffff), tab.getX(), tab.getY() + tabH * 0.55f, false);
+    g.setGradientFill(tsh);
+    g.fillRoundedRectangle(tab, 2.0f);
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.4f));
+    g.drawLine(tab.getX() + 2.0f, tab.getY() + 1.0f,
+               tab.getRight() - 2.0f, tab.getY() + 1.0f, 1.2f);
     // Finger grip: two raised ridges
     g.setColour(juce::Colour(0xff5a554a).withAlpha(0.95f));
     g.drawLine(tab.getX() + 2.5f, tab.getCentreY() - 2.5f,
