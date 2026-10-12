@@ -32,7 +32,7 @@ juce_add_plugin(DN1000
     PLUGIN_NAME "DN1000"
     DESCRIPTION "PM1000-style channel strip: discrete-style preamp, 3-band EQ, rack output section."
     PLUGIN_MANUFACTURER_CODE SabA
-    PLUGIN_CODE Hm10
+    PLUGIN_CODE DN10
     FORMATS VST3 AU Standalone
     PRODUCT_NAME "DN1000"
     IS_SYNTH FALSE
