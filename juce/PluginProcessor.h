@@ -52,7 +52,14 @@ private:
     pm1000::Channel chA_, chB_;
     pm1000::MasterStage master_;
     pm1000::PowerSupply psu_;   // ONE shared supply for both channels
-    float powerGain_ = 0.0f;    // smoothed power fade (item 8)
+    float powerGain_ = 0.0f;    // smoothed power crossfade (item 8)
+    // Dry bypass path, delayed to match the processed latency so the
+    // power crossfade never combs. Power OFF = clean bypass.
+    static constexpr int kDryCap = 4096;
+    float dryL_[kDryCap] = {};
+    float dryR_[kDryCap] = {};
+    int dryPos_ = 0;
+    int latency_ = 0;
     float warmth_ = 0.0f;       // warm-up settle state 0..1 (item 8)
     bool wasPowerOn_ = false;
 

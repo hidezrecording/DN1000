@@ -725,10 +725,15 @@ void DN1000Editor::paint(juce::Graphics& g) {
     drawBoardTape(g);
 
     // — Right block: power toggle + jewel —
-    g.setColour(juce::Colours::black); // Black for cream faceplate
+    const bool pwr = powerToggle_.getToggleState();
+    // POWER word under the jewel, centred in the band between the two
+    // modules; black when off, yellow backlight when on.
     g.setFont(PmStyle::condensed(11.0f));
-    g.drawText("POWER", 829, 263, 110, 14, juce::Justification::centred); // Right under the toggle
-    drawJewel(g, 884, 160, powerToggle_.getToggleState());
+    g.setColour(pwr ? juce::Colour(0xffffff00) : juce::Colours::black);
+    g.drawText("POWER", 884 - 55, 193, 110, 14, juce::Justification::centred);
+    // ON / OFF hug the toggle; the selected side glows yellow
+    drawToggleMarkers(g, powerToggle_, "ON", "OFF", juce::Colours::black);
+    drawJewel(g, 884, 160, pwr);
 }
 
 void DN1000Editor::timerCallback() {

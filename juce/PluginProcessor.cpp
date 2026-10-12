@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <cmath>
+#include <algorithm>
 
 DN1000Processor::DN1000Processor()
     : AudioProcessor(BusesProperties()
@@ -102,7 +103,11 @@ void DN1000Processor::prepareToPlay(double sampleRate, int)
     powerGain_ = 0.0f;
     warmth_ = 0.0f;
     wasPowerOn_ = false;
-    setLatencySamples(chA_.latencySamples()); // oversampling round trip
+    latency_ = chA_.latencySamples(); // oversampling round trip
+    setLatencySamples(latency_);
+    std::fill(std::begin(dryL_), std::end(dryL_), 0.0f);
+    std::fill(std::begin(dryR_), std::end(dryR_), 0.0f);
+    dryPos_ = 0;
     syncParamsToDsp();
 }
 
@@ -169,8 +174,18 @@ void DN1000Processor::processBlock(juce::AudioBuffer<float>& buffer,
 
     for (int i = 0; i < n; ++i)
     {
-        // Power fade (item 8): no hard bypass click; DSP keeps running
+        // Power crossfade (item 8): ON = full analog path, OFF = clean
+        // bypass. The DSP keeps running either way (no click, and the
+        // unit stays warm while bypassed).
         powerGain_ += (pgTarget - powerGain_) * pgCoef;
+        if (std::fabs(pgTarget - powerGain_) < 1e-4f) powerGain_ = pgTarget;
+
+        // Dry input, delayed by exactly the processed latency
+        dryL_[dryPos_] = inL[i];
+        dryR_[dryPos_] = isMono ? inL[i] : inR[i];
+        const int rp = (dryPos_ - latency_ + kDryCap) % kDryCap;
+        const float dL = dryL_[rp], dR = dryR_[rp];
+        dryPos_ = (dryPos_ + 1) % kDryCap;
 
         // Shared rail (item 1): both channels draw from one supply
         const float rail = psu_.getRail();
@@ -187,8 +202,9 @@ void DN1000Processor::processBlock(juce::AudioBuffer<float>& buffer,
 
         float L, R;
         master_.process(a, b, L, R);
-        outL[i] = L * powerGain_;
-        if (!isMono) outR[i] = R * powerGain_;
+        const float wet = powerGain_, dry = 1.0f - powerGain_;
+        outL[i] = L * wet + dL * dry;
+        if (!isMono) outR[i] = R * wet + dR * dry;
     }
 }
 
