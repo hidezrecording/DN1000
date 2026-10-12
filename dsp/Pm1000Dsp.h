@@ -62,7 +62,7 @@ inline constexpr float kDetentSensDbm[10] =
 
 inline float detentGainDb(int d) {
     d = d < 0 ? 0 : (d > 9 ? 9 : d);
-    return 76.0f - (kDetentSensDbm[d] + 60.0f); // 76,66,60,54,48,42,36,30,24,12
+    return (kDetentSensDbm[d] + 60.0f) + 12.0f; // 12,22,28,34,40,46,52,58,64,76 (reversed: CW=louder)
 }
 
 inline constexpr float kMidFreqs[3] = { 1000.f, 2000.f, 4000.f }; // per manual + hardware photo
