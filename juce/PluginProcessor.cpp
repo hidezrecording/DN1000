@@ -65,10 +65,10 @@ DN1000Processor::createParameterLayout()
         }
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID { prefix + "Hpf", 1 }, chName + "Hi-Pass",
-            juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f), 2.0f));
+            juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f), 0.0f)); // OFF
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID { prefix + "Lpf", 1 }, chName + "Hi-Cut",
-            juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f), 2.0f));
+            juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f), 0.0f)); // OFF
         params.push_back(dB(chName + "Bass", prefix + "Bass", -15.0f, 15.0f, 0.0f));
         params.push_back(dB(chName + "Mid-Range", prefix + "Mid", -15.0f, 15.0f, 0.0f));
         params.push_back(std::make_unique<juce::AudioParameterFloat>(

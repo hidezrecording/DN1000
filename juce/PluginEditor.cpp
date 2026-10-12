@@ -378,7 +378,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     const int mx = kAmpX - 24;
     const char* modes[3] = { "T", "C", "S" };
     for (int i = 0; i < 3; ++i)
-        g.drawText(modes[i], mx, cy - 26 + i * 20, 14, 12,
+        g.drawText(modes[i], mx, cy - 36 + 6 + i * 30 - 7, 14, 14,
                    juce::Justification::centred);
     drawDetentLabels(g, s.inputKnob,
         { "-60", "-50", "-44", "-38", "-32", "-26", "-20", "-14", "-8", "+4" },
