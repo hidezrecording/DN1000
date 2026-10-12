@@ -169,8 +169,9 @@ float Channel::processSample(float x) {
     psu_.update(demand, fs_);
     float rail = psu_.getRail();
 
-    // Smooth input gain to prevent zipper noise (was missing, caused knob to do nothing)
+    // Smooth input gain to prevent zipper noise
     inGainLin_ += (inGainLinTarget_ - inGainLin_) * 0.005f;
+    if (std::fabs(inGainLinTarget_ - inGainLin_) < 1e-6f) inGainLin_ = inGainLinTarget_; // Snap (no denormals)
 
     // Input transformer (Tamura 80071): adds weight and air
     // Rail voltage affects headroom: lower rail = earlier saturation
@@ -207,6 +208,7 @@ float Channel::processSample(float x) {
 
     // Smooth gain to prevent zipper noise/crackle when turning knob
     gainLin_ += (gainLinTarget_ - gainLin_) * 0.005f;
+    if (std::fabs(gainLinTarget_ - gainLin_) < 1e-6f) gainLin_ = gainLinTarget_; // Snap
     y *= gainLin_;
 
     // Output section: three selectable characters (T=Tamura, C=Cinemag, S=Sumthang).
@@ -256,6 +258,7 @@ void MasterStage::process(float inL, float inR, float& outL, float& outR) {
     // Discrete L/R: no crosstalk (per user request for testing).
     // Smooth master gain to prevent crackle
     outLin_ += (outLinTarget_ - outLin_) * 0.005f;
+    if (std::fabs(outLinTarget_ - outLin_) < 1e-6f) outLin_ = outLinTarget_; // Snap
     outL = inL * outLin_;
     outR = inR * outLin_;
 }
