@@ -95,27 +95,4 @@ target_compile_definitions(PmSnapshot PRIVATE
     JUCE_STANDALONE_APPLICATION=1
 )
 
-# DN1000 Test Host — full plugin GUI + file playback
-add_executable(DN1000TestHost
-    TestHost/TestHost.cpp
-    PluginProcessor.cpp
-    PluginEditor.cpp
-    PmUI.cpp
-    ../dsp/Pm1000Dsp.cpp
-)
-target_include_directories(DN1000TestHost PRIVATE ../dsp ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(DN1000TestHost PRIVATE
-    juce::juce_audio_utils
-    juce::juce_audio_formats
-    juce::juce_gui_extra
-    juce::juce_audio_processors
-    PmAssets
-)
-target_compile_definitions(DN1000TestHost PRIVATE
-    JUCE_WEB_BROWSER=0
-    JUCE_USE_CURL=0
-)
-target_compile_definitions(DN1000TestHost PRIVATE
-    JUCE_WEB_BROWSER=0
-    JUCE_USE_CURL=0
-)
+# TestHost temporarily disabled
