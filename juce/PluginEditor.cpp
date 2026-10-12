@@ -74,12 +74,16 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "aPhase", polA_));
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "bPhase", polB_));
     polA_.setBounds(71, kRowAY - 28, 30, 56);
+    setupBareToggle(linkToggle_);
+    linkToggle_.setBounds(280, 349, 30, 56);
     polB_.setBounds(71, kRowBY - 28, 30, 56);
 
     powerToggle_.setClickingTogglesState(true);
     powerToggle_.getProperties().set("toggle", "amp");
     addAndMakeVisible(powerToggle_);
+    addAndMakeVisible(linkToggle_);
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "power", powerToggle_));
+    bAtts_.push_back(std::make_unique<BAtt>(apvts, "link", linkToggle_));
     powerToggle_.setBounds(866, 205, 36, 70);
     powerToggle_.onClick = [this] { repaint(); }; // refresh the jewel
 }
@@ -427,6 +431,7 @@ void DN1000Editor::paint(juce::Graphics& g) {
     // — Left block: phase toggles —
     drawToggleMarkers(g, polA_, "0", "180");
     drawToggleMarkers(g, polB_, "0", "180");
+    drawToggleMarkers(g, linkToggle_, "UNLINK", "LINK");
 
     // — Channel strips —
     for (int c = 0; c < 2; ++c) {

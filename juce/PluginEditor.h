@@ -29,7 +29,7 @@ private:
     PmLookAndFeel laf_;
 
     ChannelStrip strips_[2];
-    juce::ToggleButton polA_, polB_, powerToggle_;
+    juce::ToggleButton polA_, polB_, powerToggle_, linkToggle_;
 
     using SAtt = juce::AudioProcessorValueTreeState::SliderAttachment;
     using BAtt = juce::AudioProcessorValueTreeState::ButtonAttachment;
