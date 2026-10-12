@@ -618,8 +618,8 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     // scaled to the disc with a little clearance. Capsules narrow so the
     // three heads read as separate microphones.
     g.setColour(juce::Colours::white);
-    const float ms = discR / 10.0f * 0.92f; // mic scale (designed in a 10-unit space)
-    const float mw = 1.05f;
+    const float ms = discR / 10.0f * 0.76f; // mics sit well inside the disc, tips clear of the edge
+    const float mw = 0.9f; // finer lines for the smaller icons
     for (int i = 0; i < 3; ++i) {
         const float angle = juce::MathConstants<float>::pi * 2.0f * i / 3.0f;
         g.saveState();
@@ -628,24 +628,24 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
         auto X = [bx, ms](float v) { return bx + v * ms; };
         auto Y = [by, ms](float v) { return by + v * ms; };
         // Base
-        g.drawLine(X(-3), Y(9), X(3), Y(9), mw);
+        g.drawLine(X(-2.6f), Y(9), X(2.6f), Y(9), mw);
         // Stand
         g.drawLine(X(0), Y(9), X(0), Y(4), mw);
         // Yoke
         juce::Path yoke;
-        yoke.startNewSubPath(X(-2.6f), Y(-1));
-        yoke.quadraticTo(X(-2.6f), Y(4), X(0), Y(4));
-        yoke.quadraticTo(X(2.6f), Y(4), X(2.6f), Y(-1));
+        yoke.startNewSubPath(X(-2.2f), Y(-1));
+        yoke.quadraticTo(X(-2.2f), Y(4), X(0), Y(4));
+        yoke.quadraticTo(X(2.2f), Y(4), X(2.2f), Y(-1));
         g.strokePath(yoke, juce::PathStrokeType(mw));
         // Capsule (narrow)
         juce::Path cap;
-        cap.startNewSubPath(X(-2.0f), Y(-1));
-        cap.lineTo(X(-2.0f), Y(-7));
-        cap.quadraticTo(X(-2.0f), Y(-10), X(0), Y(-10));
-        cap.quadraticTo(X(2.0f), Y(-10), X(2.0f), Y(-7));
-        cap.lineTo(X(2.0f), Y(-1));
-        cap.quadraticTo(X(2.0f), Y(1.5f), X(0), Y(1.5f));
-        cap.quadraticTo(X(-2.0f), Y(1.5f), X(-2.0f), Y(-1));
+        cap.startNewSubPath(X(-1.6f), Y(-1));
+        cap.lineTo(X(-1.6f), Y(-7));
+        cap.quadraticTo(X(-1.6f), Y(-10), X(0), Y(-10));
+        cap.quadraticTo(X(1.6f), Y(-10), X(1.6f), Y(-7));
+        cap.lineTo(X(1.6f), Y(-1));
+        cap.quadraticTo(X(1.6f), Y(1.5f), X(0), Y(1.5f));
+        cap.quadraticTo(X(-1.6f), Y(1.5f), X(-1.6f), Y(-1));
         g.strokePath(cap, juce::PathStrokeType(mw));
         g.restoreState();
     }
