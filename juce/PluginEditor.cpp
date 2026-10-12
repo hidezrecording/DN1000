@@ -75,14 +75,14 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "bPhase", polB_));
     polA_.setBounds(71, kRowAY - 28, 30, 56);
     setupBareToggle(linkToggle_);
-    linkToggle_.setBounds(71, 349, 30, 56); // Centered between modules, same vertical as phase
+    linkToggle_.setBounds(71, 172, 30, 56); // Centered between phase toggles (y=200)
 
     // Stereo Link ganging: when LINK is on, moving a control on one channel
     // moves the matching control on the other channel
     auto gangPair = [this](juce::Slider& a, juce::Slider& b) {
         a.onValueChange = [this, &a, &b] {
             if (ganging_) return;
-            if (linkToggle_.getToggleState()) {
+            if (!linkToggle_.getToggleState()) { // Note: toggle state is inverted (UP=linked)
                 ganging_ = true;
                 b.setValue(a.getValue(), juce::sendNotification);
                 ganging_ = false;
@@ -90,7 +90,7 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
         };
         b.onValueChange = [this, &a, &b] {
             if (ganging_) return;
-            if (linkToggle_.getToggleState()) {
+            if (!linkToggle_.getToggleState()) { // Note: toggle state is inverted (UP=linked)
                 ganging_ = true;
                 a.setValue(b.getValue(), juce::sendNotification);
                 ganging_ = false;
@@ -100,7 +100,7 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     auto gangTogglePair = [this](juce::ToggleButton& a, juce::ToggleButton& b) {
         a.onClick = [this, &a, &b] {
             if (ganging_) return;
-            if (linkToggle_.getToggleState()) {
+            if (!linkToggle_.getToggleState()) { // Note: toggle state is inverted (UP=linked)
                 ganging_ = true;
                 b.setToggleState(a.getToggleState(), juce::sendNotification);
                 ganging_ = false;
@@ -108,7 +108,7 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
         };
         b.onClick = [this, &a, &b] {
             if (ganging_) return;
-            if (linkToggle_.getToggleState()) {
+            if (!linkToggle_.getToggleState()) { // Note: toggle state is inverted (UP=linked)
                 ganging_ = true;
                 a.setToggleState(b.getToggleState(), juce::sendNotification);
                 ganging_ = false;
@@ -291,7 +291,7 @@ void DN1000Editor::drawStripLabel(juce::Graphics& g, juce::StringRef text,
     g.addTransform(juce::AffineTransform::scale(stretch, 1.0f,
                                                (float)cx, (float)(y + 7)));
     g.setColour(juce::Colours::white.withAlpha(0.96f));
-    g.setFont(PmStyle::condensed(12.0f).withExtraKerningFactor(-0.08f));
+    g.setFont(PmStyle::condensed(10.5f).withExtraKerningFactor(-0.08f));
     g.drawText(text, cx - 60, y, 120, 15, juce::Justification::centred);
 }
 
