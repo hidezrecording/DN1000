@@ -541,11 +541,19 @@ void DN1000Editor::resized() {
 void DN1000Editor::paint(juce::Graphics& g) {
     g.drawImageAt(faceplate_, 0, 0);
 
-    // Rack ears
-    g.setColour(juce::Colour(0xff7a7e82));
-    g.fillRect(0, 0, 52, kH);
-    g.fillRect(kW - 52, 0, 52, kH);
-    g.setColour(juce::Colour(0xff5c6064));
+    // Rack ears: wood tone (matching Bitey cheeks)
+    // Bitey wood: #e2a45e -> #d89a55 (30%) -> #bd813f (62%) -> #a06a35
+    auto drawWoodEar = [&](float x) {
+        juce::ColourGradient wood(juce::Colour(0xffe2a45e), x, 0.0f,
+                                  juce::Colour(0xffa06a35), x + 52.0f, 0.0f, false);
+        wood.addColour(0.30, juce::Colour(0xffd89a55));
+        wood.addColour(0.62, juce::Colour(0xffbd813f));
+        g.setGradientFill(wood);
+        g.fillRect(x, 0, 52, kH);
+    };
+    drawWoodEar(0);
+    drawWoodEar(kW - 52);
+    g.setColour(juce::Colour(0xff6b4a2a));
     g.drawLine(52, 0, 52, kH, 1.0f);
     g.drawLine(kW - 52, 0, kW - 52, kH, 1.0f);
     drawScrew(g, 26, 26); drawScrew(g, 26, kH - 26);
