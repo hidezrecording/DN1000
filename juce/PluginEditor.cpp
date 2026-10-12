@@ -43,7 +43,7 @@ void ClipBulb::paint(juce::Graphics& g) {
 
     const float lvl = juce::jlimit(0.0f, 1.2f, displayLevel_);
     juce::Colour coreCol;
-    if (lvl < 0.6f) coreCol = juce::Colour(0xff2fe07a);
+    if (lvl < 0.6f) coreCol = juce::Colour(0xffffff00);
     else if (lvl < 0.85f) coreCol = juce::Colour(0xffffc020);
     else coreCol = juce::Colour(0xffff3020);
 
@@ -396,7 +396,7 @@ void DN1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
                 const float ti = (anglesDeg[i] - aMin) / (aMax - aMin);
                 const float w = juce::jmax(0.0f, 1.0f - std::fabs(vt - ti) / 0.20f);
                 if (w <= 0.02f) continue;
-                g.setColour(juce::Colour(0xff2fe07a).withAlpha(w * w));
+                g.setColour(juce::Colour(0xffffff00).withAlpha(w * w));
             }
             g.drawText(labels[i], (int)(pt.x - 22), (int)(pt.y - 8), 44, 16,
                        juce::Justification::centred);
@@ -417,7 +417,7 @@ void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
     // The label on the side the bat points to glows bright green
     const bool invert = t.getProperties().getWithDefault("invertToggle", false);
     const bool topActive = (t.getToggleState() != invert);
-    const juce::Colour glow(0xff2fe07a);
+    const juce::Colour glow(0xffffff00);
     g.setColour(topActive ? glow : col);
     g.drawText(top, cx - 24, cy - 28, 48, 14, juce::Justification::centred);
     g.setColour(topActive ? col : glow);
@@ -549,7 +549,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     const char* modes[3] = { "T", "C", "S" };
     const int activeMode = (int)std::round(s.outMode.getValue()); // 0=S, 1=C, 2=T
     for (int i = 0; i < 3; ++i) {
-        g.setColour(activeMode == 2 - i ? juce::Colour(0xff2fe07a)
+        g.setColour(activeMode == 2 - i ? juce::Colour(0xffffff00)
                                         : juce::Colours::white.withAlpha(0.92f));
         g.drawText(modes[i], mx, cy - 36 + 6 + i * 30 - 7, 14, 14,
                    juce::Justification::centred);
@@ -568,7 +568,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
         const int active = 2 - (int)std::round(sl.getValue()); // labels run top=high value
         for (int i = 0; i < 3; ++i) {
             const float y = b.getY() + 6.0f + (float)i / 2.0f * (b.getHeight() - 12.0f);
-            g.setColour(i == active ? juce::Colour(0xff2fe07a)
+            g.setColour(i == active ? juce::Colour(0xffffff00)
                                     : juce::Colours::white.withAlpha(0.94f));
             g.drawText(labs[i], x, (int)(y - 7), 26, 14, juce::Justification::right);
         }
