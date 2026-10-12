@@ -542,52 +542,54 @@ void DN1000Editor::resized() {
 
 
 void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
-    // Bitey logo: "BITEY" + 3-mic emblem, hot pink
-    // Matches the approved HTML logo: Swiss 911 Compressed, three detailed mics
-    const auto pink = juce::Colour(0xffff69b4); // Hot pink (always)
-    const float cy = 25.0f; // Centered between plugin top (0) and strip top (50)
-    const float cx = kW * 0.5f;
+    // Bitey logo: "BITEY" + mic emblem
+    // Color changes with amp selector: T=green, C=hot pink, S=blue
+    // Centered above top module, fits in y=8 to y=52
+    const auto green = juce::Colour(0xffff69b4); // Hot pink (always)
+    const float cy = 25.0f; // Centered // Vertical center of logo area
+    const float cx = kW * 0.5f; // Horizontal center
 
-    // "BITEY": Swiss 911 Compressed vibe (Arial Narrow Black, condensed)
-    g.setColour(pink);
-    juce::Font font("Arial Narrow", 30.0f, juce::Font::black);
+    // "BITEY" text: Arial Narrow Black (Swiss 911 equivalent)
+    g.setColour(green);
+    juce::Font font("Arial Narrow", 32.0f, juce::Font::bold);
+    // Condense it (Swiss 911 Compressed vibe)
     g.setFont(font);
     const juce::String text = "BITEY";
-    // Tighter, more condensed
-    g.drawText(text, (int)(cx - 70), (int)(cy - 18), 100, 36,
+    const float textW = 110.0f;
+    // Draw text centered, slightly left to make room for emblem
+    g.drawText(text, (int)(cx - textW/2 - 30), (int)(cy - 20), (int)textW, 40,
                juce::Justification::centred);
 
-    // Mic emblem: smaller (r=14), closer to text (cx+32)
-    const float ex = cx + 32.0f;
-    const float er = 14.0f;
-    g.drawEllipse(ex - er, cy - er, er*2, er*2, 1.8f);
+    // Mic emblem circle to the right of text
+    const float ex = cx + 45.0f; // Emblem center x
+    const float er = 18.0f; // Emblem radius
+    g.drawEllipse(ex - er, cy - er, er*2, er*2, 2.0f);
 
-    // Three detailed mics (from approved HTML logo)
-    // Mic shape: base, stand, yoke, tall capsule
-    const float mw = 1.6f;
+    // Three mics (simplified, green lines)
+    g.setColour(green);
+    const float mw = 2.0f; // mic line width
     for (int i = 0; i < 3; ++i) {
         const float angle = juce::MathConstants<float>::pi * 2.0f * i / 3.0f;
         g.saveState();
         g.addTransform(juce::AffineTransform::translation(ex, cy).rotated(angle));
-        // Base
-        g.drawLine(-5, 11, 5, 11, mw);
-        // Stand
-        g.drawLine(0, 11, 0, 5, mw);
-        // Yoke (U-shape)
+        // Mic: base at bottom, capsule at top (simplified)
+        g.drawLine(-4, 12, 4, 12, mw); // base
+        g.drawLine(0, 12, 0, 5, mw); // stand
+        // Yoke
         juce::Path yoke;
-        yoke.startNewSubPath(-6, -1);
-        yoke.quadraticTo(-6, 5, 0, 5);
-        yoke.quadraticTo(6, 5, 6, -1);
+        yoke.startNewSubPath(-5, -2);
+        yoke.quadraticTo(-5, 5, 0, 5);
+        yoke.quadraticTo(5, 5, 5, -2);
         g.strokePath(yoke, juce::PathStrokeType(mw));
-        // Capsule (tall, detailed)
+        // Capsule
         juce::Path cap;
-        cap.startNewSubPath(-5, -1);
-        cap.lineTo(-5, -8);
-        cap.quadraticTo(-5, -11, 0, -11);
-        cap.quadraticTo(5, -11, 5, -8);
-        cap.lineTo(5, -1);
-        cap.quadraticTo(5, 2, 0, 2);
-        cap.quadraticTo(-5, 2, -5, -1);
+        cap.startNewSubPath(-4, -2);
+        cap.lineTo(-4, -10);
+        cap.quadraticTo(-4, -14, 0, -14);
+        cap.quadraticTo(4, -14, 4, -10);
+        cap.lineTo(4, -2);
+        cap.quadraticTo(4, 2, 0, 2);
+        cap.quadraticTo(-4, 2, -4, -2);
         g.strokePath(cap, juce::PathStrokeType(mw));
         g.restoreState();
     }
