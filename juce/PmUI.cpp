@@ -80,8 +80,8 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
                                 juce::Colour(0xff050506), centre.x, centre.y + radius, false);
     g.setGradientFill(shaftG);
     g.fillEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
-    // Glossy specular highlight (top-left)
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.28f));
+    // Glossy specular highlight (top-left, fixed - subtle continuous light source)
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.15f));
     g.fillEllipse(centre.x - radius * 0.65f, centre.y - radius * 0.75f,
                   radius * 0.7f, radius * 0.45f);
 
@@ -174,8 +174,8 @@ void PmLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& butt
                               juce::Colour(0xff5a5a62), ballX + ballR, ballY + ballR, false);
     g.setGradientFill(ball);
     g.fillEllipse(ballX - ballR, ballY - ballR, ballR * 2.0f, ballR * 2.0f);
-    // Ball highlight
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.9f));
+    // Ball highlight (subtle, fixed light source)
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.4f));
     g.fillEllipse(ballX - ballR * 0.5f, ballY - ballR * 0.6f,
                   ballR * 0.6f, ballR * 0.45f);
     // Highlight ridge

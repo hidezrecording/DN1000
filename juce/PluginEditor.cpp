@@ -545,7 +545,7 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     // Bitey logo: "BITEY" + 3-mic emblem, hot pink
     // Matches the approved HTML logo: Swiss 911 Compressed, three detailed mics
     const auto pink = juce::Colour(0xffff69b4); // Hot pink (always)
-    const float cy = 30.0f;
+    const float cy = 25.0f; // Centered between plugin top (0) and strip top (50)
     const float cx = kW * 0.5f;
 
     // "BITEY": Swiss 911 Compressed vibe (Arial Narrow Black, condensed)
