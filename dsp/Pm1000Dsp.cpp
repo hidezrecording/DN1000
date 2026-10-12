@@ -122,7 +122,7 @@ void Channel::setParams(const ChannelParams& p) {
     if (p_.gain <= 0.02f)
         gainLin_ = dbToLinear(-93.0f);
     else
-        gainLin_ = (float)std::pow(10.0, (20.0 * std::log10(p_.gain / 7.0)) / 20.0);
+        gainLin_ = p_.gain / 5.0f; // 5.0 = unity (12 o'clock)
 
     const float hpfFreq = p_.hpfMode == 1 ? 40.0f : (p_.hpfMode == 2 ? 80.0f : 0.0f);
     if (hpfFreq > 0.0f) {

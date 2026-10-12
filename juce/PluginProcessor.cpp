@@ -46,7 +46,7 @@ DN1000Processor::createParameterLayout()
     auto gain010 = [](juce::String name, juce::String id) {
         return std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID { id, 1 }, name,
-            juce::NormalisableRange<float>(0.0f, 10.0f, 0.01f), 10.0f);
+            juce::NormalisableRange<float>(0.0f, 10.0f, 0.01f), 5.0f); // 5.0 = unity (12 o'clock)
     };
 
     for (auto prefix : { juce::String("a"), juce::String("b") })
@@ -87,7 +87,7 @@ void DN1000Processor::prepareToPlay(double sampleRate, int)
     chA_.prepare(sampleRate);
     chB_.prepare(sampleRate);
     master_.prepare(sampleRate);
-    master_.setLevel(7.0f); // fixed unity — per-channel OUTPUT knobs do the work
+    master_.setLevel(5.0f); // fixed unity (5.0 = 0dB) — per-channel OUTPUT knobs do the work
     syncParamsToDsp();
 }
 
