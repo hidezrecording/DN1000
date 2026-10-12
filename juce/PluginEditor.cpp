@@ -441,7 +441,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
         { "-60", "-50", "-44", "-38", "-32", "-26", "-20", "-14", "-8", "+4" },
         { -135, -105, -75, -45, -15, 15, 45, 75, 105, 135 }, {}, 9.0f);
     for (auto* k : { &s.bassKnob, &s.midKnob, &s.trebleKnob })
-        drawDetentLabels(g, *k, { "-10", "0", "+10" }, { -120, 0, 120 },
+        drawDetentLabels(g, *k, { "-10", "0", "+10" }, { -135, 0, 135 }, { 18.0f, 22.0f, 18.0f },
                          { 22.0f, 14.0f, 22.0f }, 9.5f);
     drawDetentLabels(g, s.outKnob, { "0", "U", "10" }, { -135, 0, 135 }, {}, 8.5f);
 
