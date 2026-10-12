@@ -434,11 +434,11 @@ void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
 
 void DN1000Editor::drawBoardTape(juce::Graphics& g) {
     const float tw = 224.0f, th = 28.8f; // 80% of the old size
-    // Left edge aligned with the lower module's left edge; vertically
-    // centred in the band between the lower module's bottom and the
-    // bottom of the rack.
+    // Left edge aligned with the modules' left edge; vertically centred
+    // in the band between the top of the rack and the top module's top
+    // (mirror of its old home below the lower module).
     const float tx = (float)kStripX;
-    const float bandTop = (float)(kStripBY + kStripH), bandBot = 400.0f;
+    const float bandTop = 0.0f, bandBot = (float)kStripAY;
     const float ty = (bandTop + bandBot) * 0.5f - th * 0.5f;
     const float cx = tx + tw * 0.5f, cy = ty + th * 0.5f;
     juce::Graphics::ScopedSaveState ss(g);
