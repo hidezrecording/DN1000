@@ -284,10 +284,11 @@ void DN1000Editor::drawLabelPlate(juce::Graphics& g, juce::StringRef text,
 }
 
 void DN1000Editor::drawStripLabel(juce::Graphics& g, juce::StringRef text,
-                                         int cx, int y) {
+                                         int cx, int y, float stretch) {
     juce::Graphics::ScopedSaveState ss(g);
-    // Hardware silkscreen: bold, near-normal width, crisp white
-    g.addTransform(juce::AffineTransform::scale(1.30f, 1.0f,
+    // Hardware silkscreen: bold, crisp white
+    // Large labels (TREBLE, BASS): 1.30x stretch. Small switch labels: 1.0x (no stretch) to avoid overlap.
+    g.addTransform(juce::AffineTransform::scale(stretch, 1.0f,
                                                (float)cx, (float)(y + 7)));
     g.setColour(juce::Colours::white.withAlpha(0.96f));
     g.setFont(PmStyle::condensed(12.0f).withExtraKerningFactor(-0.08f));
@@ -417,17 +418,17 @@ void DN1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool lit) {
 
 void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     // Horizontal silkscreen labels below each control
-    drawStripLabel(g, "INPUT", kInputX, cy + 37);
-    drawStripLabel(g, "LOW CUT", kHpfX, cy + 37);
-    drawStripLabel(g, "MID RANGE", kMidSwX, cy + 37);
-    drawStripLabel(g, "BASS", kBassX, cy + 37);
+    drawStripLabel(g, "INPUT", kInputX, cy + 37, 1.30f);
+    drawStripLabel(g, "LOW CUT", kHpfX, cy + 37, 1.0f);
+    drawStripLabel(g, "MID RANGE", kMidSwX, cy + 37, 1.0f);
+    drawStripLabel(g, "BASS", kBassX, cy + 37, 1.30f);
     drawStripLabel(g, "MID-RANGE", kMidX, cy + 37);
-    drawStripLabel(g, "TREBLE", kTrebleX, cy + 37);
-    drawStripLabel(g, "OUTPUT", kOutX, cy + 37);
+    drawStripLabel(g, "TREBLE", kTrebleX, cy + 37, 1.30f);
+    drawStripLabel(g, "OUTPUT", kOutX, cy + 37, 1.30f);
 
     // Toggle markers
     drawToggleMarkers(g, s.micToggle, "MIC", "LINE");
-    drawStripLabel(g, "AMP", kAmpX, cy + 37);
+    drawStripLabel(g, "AMP", kAmpX, cy + 37, 1.0f);
     // T / C / S to the LEFT of the switch now
     g.setColour(juce::Colours::white.withAlpha(0.92f));
     g.setFont(PmStyle::condensed(10.5f));
@@ -457,7 +458,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     slideLabels(s.hpfSlide, kHpfX - 36, { "80", "40", "OFF" });
     // HIGH CUT: 3 positions (OFF/20K/16K), labels lined up with HI-PASS
     slideLabels(s.lpfSlide, kLpfX - 36, { "16", "20", "OFF" });
-    drawStripLabel(g, "HIGH CUT", kLpfX, cy + 37);
+    drawStripLabel(g, "HIGH CUT", kLpfX, cy + 37, 1.0f);
     slideLabels(s.midSlide, kMidSwX - 36, { "4K", "2K", "1K" });
 }
 

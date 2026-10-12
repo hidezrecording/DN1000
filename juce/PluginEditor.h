@@ -48,7 +48,7 @@ private:
     void renderFaceplate();
     void paintStrip(juce::Graphics& g, ChannelStrip& s, int cy);
     void drawStripLabel(juce::Graphics& g, juce::StringRef text,
-                        int cx, int y);
+                        int cx, int y, float stretch = 1.30f);
     void drawDetentLabels(juce::Graphics& g, juce::Slider& s,
                           const juce::StringArray& labels,
                           const std::vector<float>& anglesDeg,
