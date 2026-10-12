@@ -543,16 +543,15 @@ void DN1000Editor::paint(juce::Graphics& g) {
 
     // Rack ears: wood tone (matching Bitey cheeks)
     // Bitey wood: #e2a45e -> #d89a55 (30%) -> #bd813f (62%) -> #a06a35
-    auto drawWoodEar = [&](float x) {
+    for (int ear = 0; ear < 2; ++ear) {
+        const float x = (ear == 0) ? 0.0f : (float)(kW - 52);
         juce::ColourGradient wood(juce::Colour(0xffe2a45e), x, 0.0f,
                                   juce::Colour(0xffa06a35), x + 52.0f, 0.0f, false);
         wood.addColour(0.30, juce::Colour(0xffd89a55));
         wood.addColour(0.62, juce::Colour(0xffbd813f));
         g.setGradientFill(wood);
-        g.fillRect(x, 0, 52, kH);
-    };
-    drawWoodEar(0);
-    drawWoodEar(kW - 52);
+        g.fillRect(x, 0.0f, 52.0f, (float)kH);
+    }
     g.setColour(juce::Colour(0xff6b4a2a));
     g.drawLine(52, 0, 52, kH, 1.0f);
     g.drawLine(kW - 52, 0, kW - 52, kH, 1.0f);
