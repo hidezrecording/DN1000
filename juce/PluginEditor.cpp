@@ -552,21 +552,28 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     const float cy = 25.0f; // Centered between plugin top and strip top
     const float cx = kW * 0.5f;
 
-    // "BITEY" text: Arial Narrow Bold (Swiss 911 Compressed vibe), smaller,
-    // positioned top-right so the Y sits above the AMP switch (kAmpX)
+    // "BITEY" text: Swiss 911 Compressed match = Helvetica Neue Condensed
+    // Black (macOS system font), slight vertical stretch like the Yamaha
+    // wordmark, tightened spacing. Top-right, Y above the AMP switch.
     g.setColour(green);
-    juce::Font font("Arial Narrow", 26.0f, juce::Font::bold);
+    juce::Font font("Helvetica Neue Condensed Black", 26.0f, juce::Font::plain);
+    font = font.withExtraKerningFactor(-0.04f);
     g.setFont(font);
     const juce::String text = "BITEY";
     const float textW = (float)font.getStringWidth(text);
     const float er = 10.0f; // Emblem radius (diameter 20 = height of Y)
-    const float gap = 4.0f; // Emblem sits immediately left of the B
+    const float gap = 2.0f; // Emblem sits immediately left of the B (closer)
     // Y is the last fifth of the text: align its centre over the AMP switch
     const float textRight = 825.0f + textW * 0.1f;
     const float textX = textRight - textW;
     const float ex = textX - gap - er; // Emblem center x (left of the B)
-    g.drawText(text, (int)textX, (int)(cy - 16), (int)(textW + 4), 32,
-               juce::Justification::left);
+    {
+        // Vertical stretch (Swiss 911 / approved HTML logo used scaleY 1.15)
+        juce::Graphics::ScopedSaveState ss(g);
+        g.addTransform(juce::AffineTransform::scale(1.0f, 1.12f, textX + textW * 0.5f, cy));
+        g.drawText(text, (int)textX, (int)(cy - 16), (int)(textW + 4), 32,
+                   juce::Justification::left);
+    }
 
     // Mic emblem circle
     g.drawEllipse(ex - er, cy - er, er*2, er*2, 1.5f);
