@@ -17,8 +17,8 @@ struct PmStyle {
     static juce::Colour knobOrangeDark() { return juce::Colour(0xff9a5c14); }
     static juce::Colour knobLime() { return juce::Colour(0xffadc12e); }
     static juce::Colour knobLimeDark() { return juce::Colour(0xff7a8c1f); }
-    static juce::Colour knobGreen()  { return juce::Colour(0xff4a8b6b); }
-    static juce::Colour knobGreenDark() { return juce::Colour(0xff2a5a44); }
+    static juce::Colour knobGreen()  { return juce::Colour(0xff2a5c34); } // Darker Yamaha green
+    static juce::Colour knobGreenDark() { return juce::Colour(0xff1a3d22); }
 
     static juce::Font silkFont(float size, bool bold = false) {
         return juce::Font(juce::FontOptions(size,

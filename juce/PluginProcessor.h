@@ -40,6 +40,12 @@ public:
 
     // Clip indicator levels (0.0 to 1.0+)
     float getChannelALevel() const { return chA_.getLevel(); }
+    int getOutMode() const {
+        // Get from APVTS (outModeA parameter)
+        if (auto* p = apvts.getRawParameterValue("outModeA"))
+            return (int)p->load();
+        return 0;
+    }
     float getChannelBLevel() const { return chB_.getLevel(); }
 
 private:

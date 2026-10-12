@@ -542,9 +542,15 @@ void DN1000Editor::resized() {
 
 
 void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
-    // Bitey logo: "BITEY" + mic emblem, fluorescent green on ivory
+    // Bitey logo: "BITEY" + mic emblem
+    // Color changes with amp selector: T=green, C=hot pink, S=blue
     // Centered above top module, fits in y=8 to y=52
-    const auto green = juce::Colour(0xff2fe07a);
+    const int mode = proc_.getOutMode();
+    juce::Colour logoCol;
+    if (mode == 1) logoCol = juce::Colour(0xffff69b4); // C: hot pink
+    else if (mode == 2) logoCol = juce::Colour(0xff0080ff); // S: blue
+    else logoCol = juce::Colour(0xff2fe07a); // T: green
+    const auto green = logoCol;
     const float cy = 30.0f; // Vertical center of logo area
     const float cx = kW * 0.5f; // Horizontal center
 
@@ -647,4 +653,10 @@ void DN1000Editor::timerCallback() {
     // Update clip indicators from DSP levels
     clipA_.setLevel(proc_.getChannelALevel());
     clipB_.setLevel(proc_.getChannelBLevel());
+    // Repaint logo if amp mode changed (color changes)
+    const int mode = proc_.getOutMode();
+    if (mode != lastAmpMode_) {
+        lastAmpMode_ = mode;
+        repaint(); // Redraw logo with new color
+    }
 }

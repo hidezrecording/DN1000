@@ -47,6 +47,7 @@ private:
     ChannelStrip strips_[2];
     juce::ToggleButton polA_, polB_, powerToggle_, linkToggle_;
     ClipBulb clipA_, clipB_;
+    int lastAmpMode_ = -1; // For logo color change detection
     bool ganging_ = false; // Prevents recursive link updates
 
     using SAtt = juce::AudioProcessorValueTreeState::SliderAttachment;
