@@ -261,8 +261,8 @@ void DN1000Editor::renderFaceplate() {
     juce::Graphics g(faceplate_);
     g.fillAll(juce::Colour(0xfffdfbf3)); // Ivory (not brushed aluminum)
 
-    #if 0 // Brushed metal skipped for ivory finish
     std::mt19937 rng(1234);
+    #if 0 // Brushed metal skipped for ivory finish
     std::uniform_real_distribution<float> by(0, kH);
     std::uniform_real_distribution<float> bl(60.0f, 400.0f);
     std::uniform_real_distribution<float> ba(0.03f, 0.09f);
@@ -602,7 +602,7 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
 
 void DN1000Editor::paint(juce::Graphics& g) {
     g.drawImageAt(faceplate_, 0, 0);
-    // drawBiteyLogo(g); // TEMP DISABLED - build error
+    drawBiteyLogo(g); // Bitey logo above top module
 
     // Rack ears: dark cherry wood (Yamaha PM1000 style, darker and redder)
     // Dark cherry: #8a3a22 -> #6b2a18 (30%) -> #4d1e10 (62%) -> #331208
