@@ -169,6 +169,9 @@ float Channel::processSample(float x) {
     psu_.update(demand, fs_);
     float rail = psu_.getRail();
 
+    // Smooth input gain to prevent zipper noise (was missing, caused knob to do nothing)
+    inGainLin_ += (inGainLinTarget_ - inGainLin_) * 0.005f;
+
     // Input transformer (Tamura 80071): adds weight and air
     // Rail voltage affects headroom: lower rail = earlier saturation
     float y = inXfmr_.process(x * inGainLin_, 2.0f - rail);
