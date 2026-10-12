@@ -394,7 +394,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
         g.setColour(juce::Colours::white.withAlpha(0.94f));
         g.setFont(PmStyle::condensed(10.0f));
         for (int i = 0; i < 3; ++i) {
-            const float y = b.getY() + 16.0f + (float)i / 2.0f * (b.getHeight() - 32.0f);
+            const float y = b.getY() + 6.0f + (float)i / 2.0f * (b.getHeight() - 12.0f);
             g.drawText(labs[i], x, (int)(y - 7), 26, 14, juce::Justification::right);
         }
     };

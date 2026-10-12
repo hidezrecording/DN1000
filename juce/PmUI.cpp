@@ -262,8 +262,8 @@ void PmLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int w,
     const float proportion = juce::jlimit(0.0f, 1.0f,
         (sliderPos - minPos) / (maxPos - minPos));
     const float tabH = 22.0f, tabW = slotW - 3.0f;
-    const float travel = slot.getHeight() - tabH - 6.0f;
-    const float ty = slot.getY() + 3.0f + (1.0f - proportion) * travel;
+    const float travel = slot.getHeight() - tabH + 14.0f;
+    const float ty = slot.getY() - 7.0f + (1.0f - proportion) * travel;
     juce::Rectangle<float> tab(cx - tabW * 0.5f, ty, tabW, tabH);
     // Gap shadow around the tab (it sits IN the opening)
     g.setColour(juce::Colour(0xff000000).withAlpha(0.65f));
