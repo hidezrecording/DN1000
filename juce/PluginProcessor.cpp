@@ -54,7 +54,7 @@ Hamamatsu1000Processor::createParameterLayout()
         const juce::String chName = prefix == "a" ? "Ch A " : "Ch B ";
         params.push_back(choice(chName + "Input", prefix + "InputLevel",
             { "-60 dBm", "-50 dBm", "-44 dBm", "-38 dBm", "-32 dBm",
-              "-26 dBm", "-20 dBm", "-14 dBm", "-8 dBm", "+4 dBm" }, 9));
+              "-26 dBm", "-20 dBm", "-14 dBm", "-8 dBm", "+4 dBm" }, 5));
         params.push_back(toggle(chName + "Polarity", prefix + "Phase", false));
         params.push_back(toggle(chName + "Mic", prefix + "Mic", false));
         {
