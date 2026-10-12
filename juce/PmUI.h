@@ -13,12 +13,12 @@ struct PmStyle {
     static juce::Colour silk()  { return juce::Colour(0xfff2f2f2); }
     static juce::Colour dim()   { return juce::Colour(0xffcfcfcf); }
 
-    static juce::Colour knobOrange() { return juce::Colour(0xffff8c1a); } // Brighter deep orange
-    static juce::Colour knobOrangeDark() { return juce::Colour(0xffb85c0a); }
-    static juce::Colour knobLime() { return juce::Colour(0xffadc12e); }
-    static juce::Colour knobLimeDark() { return juce::Colour(0xff7a8c1f); }
-    static juce::Colour knobGreen()  { return juce::Colour(0xff3a8c4a); } // Brighter deep Yamaha green
-    static juce::Colour knobGreenDark() { return juce::Colour(0xff245a2e); }
+    static juce::Colour knobOrange() { return juce::Colour(0xffff9e1f); } // Saturated bright orange
+    static juce::Colour knobOrangeDark() { return juce::Colour(0xffbf6509); }
+    static juce::Colour knobLime() { return juce::Colour(0xffbcd633); }
+    static juce::Colour knobLimeDark() { return juce::Colour(0xff84a024); }
+    static juce::Colour knobGreen()  { return juce::Colour(0xff3ea653); } // Saturated deep Yamaha green
+    static juce::Colour knobGreenDark() { return juce::Colour(0xff2a6e38); }
 
     static juce::Font silkFont(float size, bool bold = false) {
         return juce::Font(juce::FontOptions(size,

@@ -457,6 +457,17 @@ void DN1000Editor::drawBoardTape(juce::Graphics& g) {
 void DN1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool lit) {
     // Realistic red pilot jewel: knurled bezel + glass lens
     const float r = 15.0f;
+    if (lit) {
+        // Halation: intense red glow spilling onto the panel (Fender jewel)
+        juce::ColourGradient halo(juce::Colour(0xffff2a18).withAlpha(0.55f), x, y,
+                                  juce::Colour(0xffff2a18).withAlpha(0.0f), x + r * 2.4f, y, true);
+        g.setGradientFill(halo);
+        g.fillEllipse(x - r * 2.4f, y - r * 2.4f, r * 4.8f, r * 4.8f);
+        juce::ColourGradient halo2(juce::Colour(0xffff5040).withAlpha(0.5f), x, y,
+                                   juce::Colour(0xffff5040).withAlpha(0.0f), x + r * 1.5f, y, true);
+        g.setGradientFill(halo2);
+        g.fillEllipse(x - r * 1.5f, y - r * 1.5f, r * 3.0f, r * 3.0f);
+    }
     // Bezel
     juce::ColourGradient bez(juce::Colour(0xff4a4a4e), x - r - 6, y - r - 6,
                              juce::Colour(0xff1a1a1c), x + r + 6, y + r + 6, false);
@@ -473,16 +484,16 @@ void DN1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool lit) {
         g.drawLine(p1.x, p1.y, p2.x, p2.y, 1.4f);
     }
     // Lens
-    juce::Colour hi = lit ? juce::Colour(0xffff6a55) : juce::Colour(0xff4a1f18);
-    juce::Colour lo = lit ? juce::Colour(0xff8f130c) : juce::Colour(0xff200b08);
+    juce::Colour hi = lit ? juce::Colour(0xffff8a70) : juce::Colour(0xff4a1f18);
+    juce::Colour lo = lit ? juce::Colour(0xffb81a10) : juce::Colour(0xff200b08);
     juce::ColourGradient lens(hi, x - r * 0.4f, y - r * 0.5f,
                               lo, x + r * 0.6f, y + r * 0.7f, false);
     g.setGradientFill(lens);
     g.fillEllipse(x - r, y - r, r * 2, r * 2);
     if (lit) {
         // Hot core + specular
-        juce::ColourGradient core(juce::Colour(0xffffb0a0).withAlpha(0.9f),
-                                  x, y - 2, juce::Colour(0xffff5040).withAlpha(0.0f),
+        juce::ColourGradient core(juce::Colour(0xffffd8cc).withAlpha(1.0f),
+                                  x, y - 2, juce::Colour(0xffff3820).withAlpha(0.0f),
                                   x, y + r, false);
         g.setGradientFill(core);
         g.fillEllipse(x - r, y - r, r * 2, r * 2);
@@ -550,14 +561,13 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     // Bitey logo: mic emblem immediately LEFT of "BITEY", black
     // Centred as a group above the top module
     const auto green = juce::Colours::black; // Black (Nathan 2026-10-12)
-    const float cy = 38.0f; // Lowered: logo almost sits on the top module (strip top y=50)
-    const float ey = cy - 3.0f; // Emblem centre: raised to line up with the B's centre
+    const float cy = 38.0f; // Logo zone: almost sits on the top module (strip top y=50)
 
-    // "BITEY" wordmark: match the Yamaha logo as closely as possible.
-    // The font is EMBEDDED in the plugin (TeX Gyre Heros Condensed Bold,
-    // a Helvetica clone in the Swiss 911 Compressed family) so the
-    // wordmark renders identically on every machine, Mac or Windows.
-    // Black weight, tight spacing, never thinned.
+    // "BITEY" wordmark in the EMBEDDED font (TeX Gyre Heros Condensed Bold,
+    // a Helvetica clone in the Swiss 911 Compressed family) so it renders
+    // identically on every machine, Mac or Windows. Black weight, tight
+    // spacing, never thinned. Stretched out a touch (scaleX 1.10): the raw
+    // condensed face read too smushed.
     g.setColour(green);
     static juce::Typeface::Ptr wordmarkTf = juce::Typeface::createSystemTypefaceFor(
         BinaryData::texgyreheroscnbold_otf,
@@ -568,58 +578,69 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     g.setFont(font);
     const juce::String text = "BITEY";
     const float textW = (float)font.getStringWidth(text);
-    const float er = 10.0f; // Emblem radius (diameter 20 = height of Y)
-    const float gap = 2.0f; // Emblem sits immediately left of the B (closer)
+    const float sx = 1.10f; // Un-smush: stretch the wordmark out a little
     // Y's right edge lines up with the right edge of the top module (848)
     const float textRight = 848.0f;
     const float textX = textRight - textW;
-    const float sx = 1.0f; // Embedded font is already condensed
-    const float drawnLeft = textRight - textW * sx; // where the B actually lands
-    const float ex = drawnLeft - gap - er; // Emblem center x (left of the B)
+
+    // Measure the actual B glyph so the emblem is EXACTLY the height of
+    // the B and centred on it, like another character in the word.
+    juce::GlyphArrangement ga;
+    ga.addLineOfText(font, "B", 0.0f, 0.0f); // baseline at y=0
+    const auto bb = ga.getBoundingBox(0, 1, true);
+    const float capH = bb.getHeight();
+    // drawText centres the font's line height in the box (box centre = cy)
+    const float baseline = cy + (font.getAscent() - font.getDescent()) * 0.5f;
+    const float er = capH * 0.5f;                    // emblem = height of the B
+    const float emblemCy = baseline + bb.getCentreY(); // emblem centre = B centre
+    const float gap = 2.0f;
+    // Where the B's ink actually lands after the scaleX (pivot: textRight)
+    const float inkLeft = textRight + (textX + bb.getX() - textRight) * sx;
+    const float ex = inkLeft - gap - er; // Emblem center x (left of the B)
+
     {
-        // Yamaha proportions: tall and narrow (HTML logo used scaleY 1.15).
-        // If the resolved font is not a true condensed black, compress X
-        // as well so the shape lands in the same place.
         juce::Graphics::ScopedSaveState ss(g);
         // Pivot on the right edge so the Y stays pinned to the module edge
-        g.addTransform(juce::AffineTransform::scale(sx, 1.12f, textRight, cy));
+        g.addTransform(juce::AffineTransform::scale(sx, 1.0f, textRight, cy));
         g.drawText(text, (int)textX, (int)(cy - 16), (int)(textW + 4), 32,
                    juce::Justification::left);
     }
 
-    // Mic emblem circle (centre on ey, aligned with the B)
-    g.drawEllipse(ex - er, ey - er, er*2, er*2, 1.5f);
+    // Mic emblem circle: exactly the height of the B, on the B's centreline
+    g.drawEllipse(ex - er, emblemCy - er, er*2, er*2, 1.5f);
 
-    // Three mics (Yamaha-style, tips form equilateral triangle)
-    // FIXED: rotate around emblem center (was rotating around origin, mics flew off)
+    // Three mics (Yamaha-style, tips form equilateral triangle), scaled to
+    // the emblem with a little clearance from the ring. Capsules MUCH
+    // narrower now so the three heads read as separate microphones.
     g.setColour(green);
-    const float mw = 1.3f;
+    const float ms = er / 10.0f * 0.94f; // mic scale (designed in a 10-unit space)
+    const float mw = 1.15f;
     for (int i = 0; i < 3; ++i) {
         const float angle = juce::MathConstants<float>::pi * 2.0f * i / 3.0f;
         g.saveState();
-        // Rotate around (ex, ey) so mics stay in the circle
-        g.addTransform(juce::AffineTransform::rotation(angle, ex, ey));
-        // Mic drawn relative to emblem center: base down, capsule up
-        const float bx = ex, by = ey;
+        g.addTransform(juce::AffineTransform::rotation(angle, ex, emblemCy));
+        const float bx = ex, by = emblemCy;
+        auto X = [bx, ms](float v) { return bx + v * ms; };
+        auto Y = [by, ms](float v) { return by + v * ms; };
         // Base
-        g.drawLine(bx - 3, by + 9, bx + 3, by + 9, mw);
+        g.drawLine(X(-3), Y(9), X(3), Y(9), mw);
         // Stand
-        g.drawLine(bx, by + 9, bx, by + 4, mw);
+        g.drawLine(X(0), Y(9), X(0), Y(4), mw);
         // Yoke
         juce::Path yoke;
-        yoke.startNewSubPath(bx - 3.5f, by - 1);
-        yoke.quadraticTo(bx - 3.5f, by + 4, bx, by + 4);
-        yoke.quadraticTo(bx + 3.5f, by + 4, bx + 3.5f, by - 1);
+        yoke.startNewSubPath(X(-2.6f), Y(-1));
+        yoke.quadraticTo(X(-2.6f), Y(4), X(0), Y(4));
+        yoke.quadraticTo(X(2.6f), Y(4), X(2.6f), Y(-1));
         g.strokePath(yoke, juce::PathStrokeType(mw));
-        // Capsule (tall, slightly narrower so the three heads read clearly)
+        // Capsule (narrow)
         juce::Path cap;
-        cap.startNewSubPath(bx - 3.0f, by - 1);
-        cap.lineTo(bx - 3.0f, by - 7);
-        cap.quadraticTo(bx - 3.0f, by - 10, bx, by - 10);
-        cap.quadraticTo(bx + 3.0f, by - 10, bx + 3.0f, by - 7);
-        cap.lineTo(bx + 3.0f, by - 1);
-        cap.quadraticTo(bx + 3.0f, by + 1.5f, bx, by + 1.5f);
-        cap.quadraticTo(bx - 3.0f, by + 1.5f, bx - 3.0f, by - 1);
+        cap.startNewSubPath(X(-2.0f), Y(-1));
+        cap.lineTo(X(-2.0f), Y(-7));
+        cap.quadraticTo(X(-2.0f), Y(-10), X(0), Y(-10));
+        cap.quadraticTo(X(2.0f), Y(-10), X(2.0f), Y(-7));
+        cap.lineTo(X(2.0f), Y(-1));
+        cap.quadraticTo(X(2.0f), Y(1.5f), X(0), Y(1.5f));
+        cap.quadraticTo(X(-2.0f), Y(1.5f), X(-2.0f), Y(-1));
         g.strokePath(cap, juce::PathStrokeType(mw));
         g.restoreState();
     }

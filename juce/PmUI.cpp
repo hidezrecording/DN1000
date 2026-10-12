@@ -80,9 +80,13 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
     g.setGradientFill(shaftG);
     g.fillEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
     // Glossy specular highlight (top-left, fixed light source, PV-style)
-    g.setColour(juce::Colour(0xffffffff).withAlpha(0.20f));
-    g.fillEllipse(centre.x - radius * 0.65f, centre.y - radius * 0.75f,
-                  radius * 0.7f, radius * 0.45f);
+    // Brighter and sharper-edged so it actually reads on every pot
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.38f));
+    g.fillEllipse(centre.x - radius * 0.62f, centre.y - radius * 0.78f,
+                  radius * 0.55f, radius * 0.34f);
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.14f));
+    g.fillEllipse(centre.x - radius * 0.72f, centre.y - radius * 0.86f,
+                  radius * 0.85f, radius * 0.55f);
 
     // Body — fixed top-down lighting (bright crown, dark base), never rotates
     const float br = radius * 0.88f;
@@ -110,7 +114,7 @@ void PmLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w,
     // light like the PV knobs — a soft gradient spot, not a hard arc
     {
         const float fx = centre.x - radius * 0.66f, fy = centre.y - radius * 0.66f;
-        juce::ColourGradient sheen(juce::Colour(0xffffffff).withAlpha(0.13f), fx, fy,
+        juce::ColourGradient sheen(juce::Colour(0xffffffff).withAlpha(0.20f), fx, fy,
                                    juce::Colour(0x00ffffff), fx + radius * 0.30f, fy + radius * 0.30f, true);
         g.setGradientFill(sheen);
         g.fillEllipse(fx - radius * 0.30f, fy - radius * 0.30f, radius * 0.60f, radius * 0.60f);
