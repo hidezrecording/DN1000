@@ -48,12 +48,11 @@ jobs:
           if [ -d "build/DN1000_artefacts/Release/Standalone/DN1000.app" ]; then
             cp -R "build/DN1000_artefacts/Release/Standalone/DN1000.app" "$PKGROOT/Applications/"
           fi
-          # DN1000 Test Host (file player)
-          if [ -d "build/DN1000TestHost.app" ]; then
-            cp -R "build/DN1000TestHost.app" "$PKGROOT/Applications/DN1000 Test Host.app"
-          elif [ -f "build/DN1000TestHost" ]; then
-            mkdir -p "$PKGROOT/Applications/DN1000 Test Host.app/Contents/MacOS"
-            cp "build/DN1000TestHost" "$PKGROOT/Applications/DN1000 Test Host.app/Contents/MacOS/"
+          # DN1000 Test Host (proper app bundle)
+          if [ -d "build/DN1000TestHost_artefacts/Release/DN1000 Test Host.app" ]; then
+            cp -R "build/DN1000TestHost_artefacts/Release/DN1000 Test Host.app" "$PKGROOT/Applications/"
+          elif [ -d "build/Release/DN1000 Test Host.app" ]; then
+            cp -R "build/Release/DN1000 Test Host.app" "$PKGROOT/Applications/"
           fi
           pkgbuild --root "$PKGROOT" \
             --identifier com.sabatinoaudio.dn1000 \

@@ -95,8 +95,13 @@ target_compile_definitions(PmSnapshot PRIVATE
     JUCE_STANDALONE_APPLICATION=1
 )
 
-# DN1000 Test Host — full plugin GUI + file playback
-add_executable(DN1000TestHost
+# DN1000 Test Host — full plugin GUI + file playback (proper Mac app bundle)
+juce_add_gui_app(DN1000TestHost
+    PRODUCT_NAME "DN1000 Test Host"
+    COMPANY_NAME "Sabatino Audio"
+    BUNDLE_ID com.sabatinoaudio.dn1000testhost
+)
+target_sources(DN1000TestHost PRIVATE
     TestHost/TestHost.cpp
     PluginProcessor.cpp
     PluginEditor.cpp
@@ -110,6 +115,10 @@ target_link_libraries(DN1000TestHost PRIVATE
     juce::juce_gui_extra
     juce::juce_audio_processors
     PmAssets
+)
+target_compile_definitions(DN1000TestHost PRIVATE
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
 )
 target_compile_definitions(DN1000TestHost PRIVATE
     JUCE_WEB_BROWSER=0
