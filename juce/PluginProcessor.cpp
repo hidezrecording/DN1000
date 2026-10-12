@@ -117,13 +117,8 @@ pm1000::ChannelParams DN1000Processor::channelParamsFor(const juce::String& pref
 
 void DN1000Processor::syncParamsToDsp()
 {
-    auto pa = channelParamsFor("a");
-    chA_.setParams(pa);
-    // Stereo Link: when ON, Channel B follows Channel A
-    if (apvts.getRawParameterValue("link")->load() > 0.5f)
-        chB_.setParams(pa);
-    else
-        chB_.setParams(channelParamsFor("b"));
+    chA_.setParams(channelParamsFor("a"));
+    chB_.setParams(channelParamsFor("b"));
 }
 
 void DN1000Processor::processBlock(juce::AudioBuffer<float>& buffer,

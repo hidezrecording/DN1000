@@ -75,7 +75,59 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "bPhase", polB_));
     polA_.setBounds(71, kRowAY - 28, 30, 56);
     setupBareToggle(linkToggle_);
-    linkToggle_.setBounds(280, 349, 30, 56);
+    linkToggle_.setBounds(71, 349, 30, 56); // Centered between modules, same vertical as phase
+
+    // Stereo Link ganging: when LINK is on, moving a control on one channel
+    // moves the matching control on the other channel
+    auto gangPair = [this](juce::Slider& a, juce::Slider& b) {
+        a.onValueChange = [this, &a, &b] {
+            if (ganging_) return;
+            if (linkToggle_.getToggleState()) {
+                ganging_ = true;
+                b.setValue(a.getValue(), juce::sendNotification);
+                ganging_ = false;
+            }
+        };
+        b.onValueChange = [this, &a, &b] {
+            if (ganging_) return;
+            if (linkToggle_.getToggleState()) {
+                ganging_ = true;
+                a.setValue(b.getValue(), juce::sendNotification);
+                ganging_ = false;
+            }
+        };
+    };
+    auto gangTogglePair = [this](juce::ToggleButton& a, juce::ToggleButton& b) {
+        a.onClick = [this, &a, &b] {
+            if (ganging_) return;
+            if (linkToggle_.getToggleState()) {
+                ganging_ = true;
+                b.setToggleState(a.getToggleState(), juce::sendNotification);
+                ganging_ = false;
+            }
+        };
+        b.onClick = [this, &a, &b] {
+            if (ganging_) return;
+            if (linkToggle_.getToggleState()) {
+                ganging_ = true;
+                a.setToggleState(b.getToggleState(), juce::sendNotification);
+                ganging_ = false;
+            }
+        };
+    };
+
+    // Gang all channel strip controls
+    gangPair(strips_[0].inputKnob, strips_[1].inputKnob);
+    gangPair(strips_[0].hpfSlide, strips_[1].hpfSlide);
+    gangPair(strips_[0].lpfSlide, strips_[1].lpfSlide);
+    gangPair(strips_[0].midSlide, strips_[1].midSlide);
+    gangPair(strips_[0].bassKnob, strips_[1].bassKnob);
+    gangPair(strips_[0].midKnob, strips_[1].midKnob);
+    gangPair(strips_[0].trebleKnob, strips_[1].trebleKnob);
+    gangPair(strips_[0].outKnob, strips_[1].outKnob);
+    gangPair(strips_[0].outMode, strips_[1].outMode);
+    gangTogglePair(strips_[0].micToggle, strips_[1].micToggle);
+    gangTogglePair(polA_, polB_);
     polB_.setBounds(71, kRowBY - 28, 30, 56);
 
     powerToggle_.setClickingTogglesState(true);
@@ -269,8 +321,8 @@ void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
     const int cx = b.getCentreX();
     g.setColour(PmStyle::silk());
     g.setFont(PmStyle::condensed(10.0f));
-    g.drawText(top, cx - 24, b.getY() - 16, 48, 14, juce::Justification::centred);
-    g.drawText(bottom, cx - 24, b.getBottom() + 2, 48, 14, juce::Justification::centred);
+    g.drawText(top, cx - 24, b.getY() - 10, 48, 14, juce::Justification::centred);
+    g.drawText(bottom, cx - 24, b.getBottom() - 2, 48, 14, juce::Justification::centred);
 }
 
 void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
