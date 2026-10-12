@@ -76,10 +76,11 @@ void ClipBulb::paint(juce::Graphics& g) {
     g.setGradientFill(core);
     g.fillEllipse(cx - coreR, cy - coreR, coreR*2.0f, coreR*2.0f);
 
-    // "CLIP" label underneath
+    // "CLIP" label underneath, centered (space between L and I at bulb center)
     g.setColour(juce::Colour(0xffffffff).withAlpha(0.9f));
-    g.setFont(juce::Font("Helvetica", 8.0f, juce::Font::bold));
-    g.drawText("CLIP", 0, (int)(cy + hexD*0.5f + 2), getWidth(), 10,
+    g.setFont(juce::Font("Helvetica", 7.5f, juce::Font::bold));
+    // Center the text: the middle of "CLIP" (between L and I) aligns with bulb center cx
+    g.drawText("CLIP", 0, (int)(cy + hexD*0.5f + 4), getWidth(), 10,
                juce::Justification::centred);
 }
 
@@ -204,8 +205,8 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     // Position: x=710 (center between treble 660 and output 760), y=cy-50
     addAndMakeVisible(clipA_);
     addAndMakeVisible(clipB_);
-    clipA_.setBounds(702, kRowAY - 55, 16, 24); // Smaller, down a bit
-    clipB_.setBounds(702, kRowBY - 55, 16, 24);
+    clipA_.setBounds(702, kRowAY - 55, 20, 30); // Taller to fit CLIP text
+    clipB_.setBounds(702, kRowBY - 55, 20, 30);
     startTimerHz(30); // Update clip indicators
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "power", powerToggle_));
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "link", linkToggle_));
@@ -541,14 +542,14 @@ void DN1000Editor::resized() {
 void DN1000Editor::paint(juce::Graphics& g) {
     g.drawImageAt(faceplate_, 0, 0);
 
-    // Rack ears: wood tone (matching Bitey cheeks)
-    // Bitey wood: #e2a45e -> #d89a55 (30%) -> #bd813f (62%) -> #a06a35
+    // Rack ears: cherry wood (Yamaha style, darker reddish-brown)
+    // Cherry: #c47a5a -> #a05a3a (30%) -> #7a3a2a (62%) -> #5a2a1a
     for (int ear = 0; ear < 2; ++ear) {
         const float x = (ear == 0) ? 0.0f : (float)(kW - 52);
-        juce::ColourGradient wood(juce::Colour(0xffe2a45e), x, 0.0f,
-                                  juce::Colour(0xffa06a35), x + 52.0f, 0.0f, false);
-        wood.addColour(0.30, juce::Colour(0xffd89a55));
-        wood.addColour(0.62, juce::Colour(0xffbd813f));
+        juce::ColourGradient wood(juce::Colour(0xffc47a5a), x, 0.0f,
+                                  juce::Colour(0xff5a2a1a), x + 52.0f, 0.0f, false);
+        wood.addColour(0.30, juce::Colour(0xffa05a3a));
+        wood.addColour(0.62, juce::Colour(0xff7a3a2a));
         g.setGradientFill(wood);
         g.fillRect(x, 0.0f, 52.0f, (float)kH);
     }
