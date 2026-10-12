@@ -64,23 +64,23 @@ int main() {
     const double fs = 48000.0;
     char buf[160];
 
-    // 1. Detent gain table: 76,66,60,54,48,42,36,30,24,12 dB
+    // 1. Detent gain table (approved 2026-10-11): -20..+16 dB, 4 dB steps
     {
-        const float expect[10] = {76,66,60,54,48,42,36,30,24,12};
+        const float expect[10] = {-20,-16,-12,-8,-4,0,4,8,12,16};
         bool ok = true;
         for (int d = 0; d < 10; ++d)
             if (std::fabs(pm1000::detentGainDb(d) - expect[d]) > 0.001f) ok = false;
-        check(ok, "10-detent gains = 76..12 dB", "");
+        check(ok, "10-detent gains = -20..+16 dB", "");
     }
 
-    // 2. Flat at +4 dBm detent: 12 dB of clean gain (small signal)
+    // 2. Detent 9 (max) = +16 dB of clean gain (small signal)
     {
         pm1000::Channel ch; ch.prepare(fs);
         pm1000::ChannelParams p; p.inputDetent = 9; ch.setParams(p);
         float rms = measureRms(ch, 1000.0f, 0.05f, fs);
         float ratio = rms / (0.05f / (float)std::sqrt(2.0));
-        std::snprintf(buf, sizeof buf, "ratio=%.2f (expect ~3.9)", ratio);
-        check(ratio > 3.7f && ratio < 4.1f, "detent +4 dBm gives 12 dB", buf);
+        std::snprintf(buf, sizeof buf, "ratio=%.2f (expect ~6.3)", ratio);
+        check(ratio > 5.9f && ratio < 6.7f, "detent max gives +16 dB", buf);
     }
 
     // 3. HPF 40 cuts 20 Hz; HPF 80 cuts 40 Hz (12 dB/oct)
@@ -105,16 +105,16 @@ int main() {
     // 4. Treble shelf +15 dB lifts 18 kHz, spares 1 kHz
     {
         pm1000::Channel ch; ch.prepare(fs);
-        pm1000::ChannelParams p; p.inputDetent = 9; p.trebleDb = 15.0f; ch.setParams(p);
-        float rHi = measureRms(ch, 18000.0f, 0.05f, fs);
+        pm1000::ChannelParams p; p.inputDetent = 5; p.trebleDb = 15.0f; ch.setParams(p);
+        float rHi = measureRms(ch, 18000.0f, 0.01f, fs);
         pm1000::Channel c2; c2.prepare(fs);
-        pm1000::ChannelParams p2; p2.inputDetent = 9; c2.setParams(p2);
-        float ratio = rHi / measureRms(c2, 18000.0f, 0.05f, fs);
+        pm1000::ChannelParams p2; p2.inputDetent = 5; c2.setParams(p2);
+        float ratio = rHi / measureRms(c2, 18000.0f, 0.01f, fs);
         std::snprintf(buf, sizeof buf, "18kHz ratio=%.2f", ratio);
         check(ratio > 4.3f && ratio < 6.5f, "treble +15 dB lifts 18 kHz", buf);
 
-        float rMid = measureRms(ch, 1000.0f, 0.05f, fs)
-                   / measureRms(c2, 1000.0f, 0.05f, fs);
+        float rMid = measureRms(ch, 1000.0f, 0.01f, fs)
+                   / measureRms(c2, 1000.0f, 0.01f, fs);
         std::snprintf(buf, sizeof buf, "1kHz ratio=%.2f", rMid);
         check(rMid > 0.9f && rMid < 1.1f, "treble shelf spares 1 kHz", buf);
     }
@@ -122,41 +122,41 @@ int main() {
     // 5. Mid bell +12 dB at 2 kHz; selector moves it 1 kHz / 4 kHz
     {
         pm1000::Channel ch; ch.prepare(fs);
-        pm1000::ChannelParams p; p.inputDetent = 9; p.midDb = 12.0f; p.midSel = 1;
+        pm1000::ChannelParams p; p.inputDetent = 5; p.midDb = 12.0f; p.midSel = 1;
         ch.setParams(p);
         pm1000::Channel c2; c2.prepare(fs);
-        pm1000::ChannelParams p2; p2.inputDetent = 9; c2.setParams(p2);
-        float ratio = measureRms(ch, 2000.0f, 0.05f, fs)
-                    / measureRms(c2, 2000.0f, 0.05f, fs);
+        pm1000::ChannelParams p2; p2.inputDetent = 5; c2.setParams(p2);
+        float ratio = measureRms(ch, 2000.0f, 0.01f, fs)
+                    / measureRms(c2, 2000.0f, 0.01f, fs);
         std::snprintf(buf, sizeof buf, "2kHz ratio=%.2f", ratio);
         check(ratio > 3.5f && ratio < 4.5f, "mid +12 dB peaks at 2 kHz", buf);
 
         pm1000::Channel ch3; ch3.prepare(fs);
-        pm1000::ChannelParams p3; p3.inputDetent = 9; p3.midDb = 12.0f; p3.midSel = 0;
+        pm1000::ChannelParams p3; p3.inputDetent = 5; p3.midDb = 12.0f; p3.midSel = 0;
         ch3.setParams(p3);
-        float r1k = measureRms(ch3, 1000.0f, 0.05f, fs) / measureRms(c2, 1000.0f, 0.05f, fs);
-        float r4k = measureRms(ch3, 4000.0f, 0.05f, fs) / measureRms(c2, 4000.0f, 0.05f, fs);
+        float r1k = measureRms(ch3, 1000.0f, 0.01f, fs) / measureRms(c2, 1000.0f, 0.01f, fs);
+        float r4k = measureRms(ch3, 4000.0f, 0.01f, fs) / measureRms(c2, 4000.0f, 0.01f, fs);
         std::snprintf(buf, sizeof buf, "sel=1kHz: 1k=%.2f 4k=%.2f", r1k, r4k);
         check(r1k > 3.5f && r4k < 2.0f, "mid selector 1 kHz position", buf);
 
-        pm1000::ChannelParams p4; p4.inputDetent = 9; p4.midDb = 12.0f; p4.midSel = 2;
+        pm1000::ChannelParams p4; p4.inputDetent = 5; p4.midDb = 12.0f; p4.midSel = 2;
         ch3.setParams(p4);
-        float r1kB = measureRms(ch3, 1000.0f, 0.05f, fs) / measureRms(c2, 1000.0f, 0.05f, fs);
-        float r4kB = measureRms(ch3, 4000.0f, 0.05f, fs) / measureRms(c2, 4000.0f, 0.05f, fs);
+        float r1kB = measureRms(ch3, 1000.0f, 0.01f, fs) / measureRms(c2, 1000.0f, 0.01f, fs);
+        float r4kB = measureRms(ch3, 4000.0f, 0.01f, fs) / measureRms(c2, 4000.0f, 0.01f, fs);
         std::snprintf(buf, sizeof buf, "sel=4kHz: 1k=%.2f 4k=%.2f", r1kB, r4kB);
         check(r4kB > 3.5f && r1kB < 2.0f, "mid selector 4 kHz position", buf);
     }
 
-    // 6. Bass shelf +15 dB lifts 40 Hz
+    // 6. Bass shelf +15 dB lifts 40 Hz (shelf 5.6x + inductor bump ~1.33x)
     {
         pm1000::Channel ch; ch.prepare(fs);
-        pm1000::ChannelParams p; p.inputDetent = 9; p.bassDb = 15.0f; ch.setParams(p);
+        pm1000::ChannelParams p; p.inputDetent = 5; p.bassDb = 15.0f; ch.setParams(p);
         pm1000::Channel c2; c2.prepare(fs);
-        pm1000::ChannelParams p2; p2.inputDetent = 9; c2.setParams(p2);
-        float ratio = measureRms(ch, 40.0f, 0.05f, fs)
-                    / measureRms(c2, 40.0f, 0.05f, fs);
+        pm1000::ChannelParams p2; p2.inputDetent = 5; c2.setParams(p2);
+        float ratio = measureRms(ch, 40.0f, 0.01f, fs)
+                    / measureRms(c2, 40.0f, 0.01f, fs);
         std::snprintf(buf, sizeof buf, "40Hz ratio=%.2f", ratio);
-        check(ratio > 4.0f && ratio < 6.5f, "bass +15 dB lifts 40 Hz", buf);
+        check(ratio > 6.5f && ratio < 8.5f, "bass +15 dB lifts 40 Hz", buf);
     }
 
     // 7. Per-channel GAIN knob: 7 = unity, 10 = +3.1 dB, 0 = kill
@@ -174,18 +174,19 @@ int main() {
         check(r0 < 1e-4f, "gain full-down kills output", "");
     }
 
-    // 8. Driving the -60 dBm detent slams the preamp into the rails
-    // (then the output section colors it — still saturated, far from linear)
+    // 8. MIC mode at max detent (+46 dB total) slams the preamp into the
+    // rails (then the output section colors it — saturated, far from linear)
     {
         pm1000::Channel ch; ch.prepare(fs);
-        pm1000::ChannelParams p; p.inputDetent = 0; ch.setParams(p);
+        pm1000::ChannelParams p; p.inputDetent = 9; p.mic = true; ch.setParams(p);
         float peak = measurePeak(ch, 1000.0f, 0.01f, fs);
-        std::snprintf(buf, sizeof buf, "peak=%.2f (linear would be 63)", peak);
-        check(peak > 0.7f && peak < 0.95f, "hot preamp saturates", buf);
+        std::snprintf(buf, sizeof buf, "peak=%.2f (linear would be 200)", peak);
+        check(peak > 0.7f && peak < 0.99f, "hot preamp saturates", buf);
     }
 
     // 9. Channel VU tap reads sane level (peak-biased; GUI does ballistics).
-    // 0.02 in at +4 dBm detent (+12 dB) peaks at -22 dBFS -> about -4 VU.
+    // 0.02 in at detent max (+16 dB) peaks at -18 dBFS; VU ref is -18 dBFS,
+    // so the tap should read about 0 VU.
     {
         pm1000::Channel ch; ch.prepare(fs);
         pm1000::ChannelParams p; p.inputDetent = 9; ch.setParams(p);
@@ -193,7 +194,7 @@ int main() {
             ch.processSample(0.02f * (float)std::sin(i * 2.0 * 3.14159265 * 440.0 / fs));
         float vu = ch.vuDb();
         std::snprintf(buf, sizeof buf, "vu=%.1f dB", vu);
-        check(vu > -6.0f && vu < -2.0f, "channel VU tap reads peak level", buf);
+        check(vu > -2.0f && vu < 2.0f, "channel VU tap reads peak level", buf);
     }
 
     // 10. Master stage: unity at 7, transformer stays musical hot
@@ -239,7 +240,7 @@ int main() {
         pm1000::Channel ch; ch.prepare(fs);
         float rms[3];
         for (int m = 0; m < 3; ++m) {
-            pm1000::ChannelParams p; p.inputDetent = 5; p.gain = 9.0f;
+            pm1000::ChannelParams p; p.inputDetent = 9; p.gain = 9.0f;
             p.outMode = m; ch.setParams(p);
             rms[m] = measureRms(ch, 440.0f, 0.05f, fs);
         }
@@ -249,8 +250,8 @@ int main() {
         char b3[96]; std::snprintf(b3, sizeof b3, "rms=%.3f/%.3f/%.3f",
                                    rms[0], rms[1], rms[2]);
         check(ok, "output modes finite", b3);
-        check(std::fabs(rms[0] - rms[1]) > 1e-4f &&
-              std::fabs(rms[1] - rms[2]) > 1e-4f, "modes differ", b3);
+        check(std::fabs(rms[0] - rms[1]) > 1e-3f &&
+              std::fabs(rms[1] - rms[2]) > 1e-3f, "modes differ", b3);
     }
 
     // 14. Extreme settings stay finite
