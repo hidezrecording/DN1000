@@ -411,7 +411,7 @@ void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
 
 void DN1000Editor::drawBoardTape(juce::Graphics& g) {
     const float tw = 280.0f, th = 36.0f;
-    const float tx = (973.0f - tw) * 0.5f, ty = 359.0f;
+    const float tx = (973.0f - tw) * 0.5f, ty = 351.0f; // Lifted up (white space under bottom-left corner)
     const float cx = tx + tw * 0.5f, cy = ty + th * 0.5f;
     juce::Graphics::ScopedSaveState ss(g);
     g.addTransform(juce::AffineTransform::rotation(-0.015f, cx, cy)); // ~0.86 deg (less tilt)
