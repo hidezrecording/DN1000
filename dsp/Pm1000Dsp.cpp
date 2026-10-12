@@ -190,8 +190,8 @@ float Channel::processSample(float x) {
     // Slew limiting: authentic 15 V/us (transparent for normal signals)
     y = slew_.process(y);
 
-    // Analog noise: hiss + hum (-100 dB, inaudible in tests)
-    y += noise_.process() + psu_.getRipple();
+    // Analog noise DISABLED for oscillation debugging
+    // y += noise_.process() + psu_.getRipple();
 
     if (p_.phaseInvert) y = -y;
     if (p_.hpfMode != 0) y = hpf_.process(y);
