@@ -52,6 +52,7 @@ jobs:
             --identifier com.sabatinoaudio.dn1000 \
             --version 0.1.0 \
             --install-location / \
+            --scripts pkg_scripts \
             DN1000-0.1.0-macOS.pkg
 
       - name: Upload plugins

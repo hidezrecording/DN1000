@@ -1,0 +1,24 @@
+#!/bin/bash
+# DN1000 installer preinstall: wipe all previous versions
+# Removes Hamamatsu 1000 and DN1000 from all locations
+
+# System library
+rm -rf "/Library/Audio/Plug-Ins/VST3/Hamamatsu 1000.vst3"
+rm -rf "/Library/Audio/Plug-Ins/Components/Hamamatsu 1000.component"
+rm -rf "/Applications/Hamamatsu 1000.app"
+rm -rf "/Library/Audio/Plug-Ins/VST3/DN1000.vst3"
+rm -rf "/Library/Audio/Plug-Ins/Components/DN1000.component"
+rm -rf "/Applications/DN1000.app"
+rm -rf "/Applications/DN1000 Test Host.app"
+
+# User library (for each user - $HOME is the installing user)
+rm -rf "$HOME/Library/Audio/Plug-Ins/VST3/Hamamatsu 1000.vst3"
+rm -rf "$HOME/Library/Audio/Plug-Ins/Components/Hamamatsu 1000.component"
+rm -rf "$HOME/Library/Audio/Plug-Ins/VST3/DN1000.vst3"
+rm -rf "$HOME/Library/Audio/Plug-Ins/Components/DN1000.component"
+
+# Clear AU cache to force rescan
+rm -rf "$HOME/Library/Caches/com.apple.audiounits.cache"
+killall -9 AudioComponentRegistrar 2>/dev/null || true
+
+exit 0
