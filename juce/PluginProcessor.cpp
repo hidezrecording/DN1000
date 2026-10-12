@@ -104,12 +104,12 @@ pm1000::ChannelParams DN1000Processor::channelParamsFor(const juce::String& pref
             apvts.getParameter(prefix + "OutMode"));
         p.outMode = cp ? (2 - cp->getIndex()) : 0;
     }
-    p.hpfMode     = 2 - (int)std::round(apvts.getRawParameterValue(prefix + "Hpf")->load());
-    p.lpfMode     = 2 - (int)std::round(apvts.getRawParameterValue(prefix + "Lpf")->load());
-    p.bassDb      = -apvts.getRawParameterValue(prefix + "Bass")->load();
-    p.midDb       = -apvts.getRawParameterValue(prefix + "Mid")->load();
-    p.midSel      = 2 - (int)std::round(apvts.getRawParameterValue(prefix + "MidSel")->load());
-    p.trebleDb    = -apvts.getRawParameterValue(prefix + "Treble")->load();
+    p.hpfMode     = (int)std::round(apvts.getRawParameterValue(prefix + "Hpf")->load());
+    p.lpfMode     = (int)std::round(apvts.getRawParameterValue(prefix + "Lpf")->load());
+    p.bassDb      = apvts.getRawParameterValue(prefix + "Bass")->load();
+    p.midDb       = apvts.getRawParameterValue(prefix + "Mid")->load();
+    p.midSel      = (int)std::round(apvts.getRawParameterValue(prefix + "MidSel")->load());
+    p.trebleDb    = apvts.getRawParameterValue(prefix + "Treble")->load();
     p.gain        = apvts.getRawParameterValue(prefix + "Gain")->load();
     return p;
 }
