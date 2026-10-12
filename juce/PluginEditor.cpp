@@ -386,7 +386,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     for (auto* k : { &s.bassKnob, &s.midKnob, &s.trebleKnob })
         drawDetentLabels(g, *k, { "-10", "0", "+10" }, { -135, 0, 135 },
                          { 22.0f, 14.0f, 22.0f }, 9.5f);
-    drawDetentLabels(g, s.outKnob, { "0", "U" }, { -135, 135 }, {}, 9.5f);
+    drawDetentLabels(g, s.outKnob, { "0", "U", "10" }, { -135, 0, 135 }, {}, 9.5f);
 
     // Slide-switch position labels (left of each switch)
     auto slideLabels = [&](juce::Slider& sl, int x, const juce::StringArray& labs) {

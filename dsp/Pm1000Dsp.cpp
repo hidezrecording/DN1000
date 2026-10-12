@@ -169,29 +169,9 @@ float Channel::processSample(float x) {
     psu_.update(demand, fs_);
     float rail = psu_.getRail();
 
-    // Input transformer (Tamura 80071): adds weight and air
-    // Rail voltage affects headroom: lower rail = earlier saturation
-    float y = inXfmr_.process(x * inGainLin_, 2.0f - rail);
-
-    // Discrete preamp: 3 transistor stages, all-discrete (no ICs).
-    // Unity gain when clean; each stage adds 2nd-order harmonics when driven.
-    y = transistorStage(y);  // input stage
-    y = coupling_.process(y); // coupling cap (LF phase shift)
-    y = transistorStage(y);  // driver stage
-    // Miller capacitance: subtle 30 kHz rolloff (phase shift, not amplitude)
-    y = y * 0.99f + miller_.process(y) * 0.01f; // 1% blend = very subtle
-    y = transistorStage(y);  // output stage
-
-    // Thermal drift: transistors warm up with signal, bias shifts slowly.
-    // Time constant ~10 seconds. Subtle: ±1% gain variation.
-    thermal_ += (std::fabs(y) - thermal_) * 0.00002f;
-    y *= (1.0f + thermal_ * 0.01f);
-
-    // Slew limiting: authentic 15 V/us (transparent for normal signals)
-    y = slew_.process(y);
-
-    // Analog noise: hiss + hum (-100 dB, inaudible in tests)
-    y += noise_.process() + psu_.getRipple();
+    // BYPASSED for debugging: clean gain only
+    float y = x * inGainLin_;
+    // (transformer, transistors, coupling, miller, thermal, slew, noise disabled)
 
     if (p_.phaseInvert) y = -y;
     if (p_.hpfMode != 0) y = hpf_.process(y);
@@ -242,8 +222,7 @@ float Channel::vuDb() const {
 void MasterStage::prepare(double) { reset(); }
 
 void MasterStage::setLevel(float level) {
-    outLin_ = (level <= 0.02f) ? 0.0f
-        : (float)std::pow(10.0, (20.0 * std::log10(level / 7.0)) / 20.0);
+    outLin_ = (level <= 0.02f) ? 0.0f : level / 5.0f; // 5.0 = unity (12 o'clock)
 }
 
 void MasterStage::reset() {}
