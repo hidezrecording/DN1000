@@ -287,7 +287,7 @@ void DN1000Editor::drawStripLabel(juce::Graphics& g, juce::StringRef text,
                                          int cx, int y) {
     juce::Graphics::ScopedSaveState ss(g);
     // Hardware silkscreen: bold, near-normal width, crisp white
-    g.addTransform(juce::AffineTransform::scale(1.45f, 1.0f,
+    g.addTransform(juce::AffineTransform::scale(1.65f, 1.0f,
                                                (float)cx, (float)(y + 7)));
     g.setColour(juce::Colours::white.withAlpha(0.96f));
     g.setFont(PmStyle::condensed(12.0f));

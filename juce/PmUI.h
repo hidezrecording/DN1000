@@ -27,6 +27,9 @@ struct PmStyle {
     // Condensed grotesque from the embedded Oswald Bold — matches the
     // PM1000's silkscreen lettering.
     static juce::Font condensed(float size);
+    static void drawStretchedText(juce::Graphics& g, const juce::String& text,
+                                 float x, float y, float w, float h,
+                                 juce::Justification just, float stretch = 1.25f);
     // Sharpie-style handwriting for the board tape.
     static juce::Font marker(float size);
 };

@@ -5,7 +5,20 @@
 juce::Font PmStyle::condensed(float size) {
     // Yamaha PM1000: clean grotesque sans, slightly rounded, bold
     // Helvetica Bold is the closest system match to the silkscreen
+    // Note: Yamaha uses a STRETCHED (extended) variant - apply via drawStretchedText
     return juce::Font("Helvetica", size, juce::Font::bold);
+}
+
+// Draw text with horizontal stretch (Yamaha PM1000 uses extended letterforms)
+// stretch: 1.0 = normal, 1.25 = 25% wider (matches Yamaha silkscreen)
+void PmStyle::drawStretchedText(juce::Graphics& g, const juce::String& text,
+                               float x, float y, float w, float h,
+                               juce::Justification just, float stretch) {
+    juce::Graphics::ScopedSaveState ss(g);
+    const float cx = x + w * 0.5f;
+    // Scale horizontally around the center x
+    g.addTransform(juce::AffineTransform::scale(stretch, 1.0f, cx, y));
+    g.drawText(text, x, y, w, h, just);
 }
 
 juce::Font PmStyle::marker(float size) {
