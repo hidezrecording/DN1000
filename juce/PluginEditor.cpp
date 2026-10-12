@@ -259,10 +259,11 @@ void DN1000Editor::layoutStrip(ChannelStrip& s, int cy) {
 void DN1000Editor::renderFaceplate() {
     faceplate_ = juce::Image(juce::Image::RGB, kW, kH, false);
     juce::Graphics g(faceplate_);
-    g.fillAll(PmStyle::face());
+    g.fillAll(juce::Colour(0xfffdfbf3)); // Ivory (not brushed aluminum)
 
     std::mt19937 rng(1234);
-    // Brushed metal: fine horizontal streaks (anisotropic highlight)
+    // (Brushed metal skipped for ivory finish)
+    if (false) // Brushed metal: fine horizontal streaks (anisotropic highlight)
     std::uniform_real_distribution<float> by(0, kH);
     std::uniform_real_distribution<float> bl(60.0f, 400.0f);
     std::uniform_real_distribution<float> ba(0.03f, 0.09f);
@@ -539,17 +540,72 @@ void DN1000Editor::resized() {
     // Fixed-size rack panel; layout done in the constructor.
 }
 
+
+void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
+    // Bitey logo: "BITEY" + mic emblem, fluorescent green on ivory
+    // Centered above top module, fits in y=8 to y=52
+    const auto green = juce::Colour(0xff2fe07a);
+    const float cy = 30.0f; // Vertical center of logo area
+    const float cx = kW * 0.5f; // Horizontal center
+
+    // "BITEY" text: Arial Narrow Black (Swiss 911 equivalent)
+    g.setColour(green);
+    juce::Font font("Arial Narrow", 32.0f, juce::Font::bold);
+    // Condense it (Swiss 911 Compressed vibe)
+    g.setFont(font);
+    const juce::String text = "BITEY";
+    const float textW = 110.0f;
+    // Draw text centered, slightly left to make room for emblem
+    g.drawText(text, (int)(cx - textW/2 - 30), (int)(cy - 20), (int)textW, 40,
+               juce::Justification::centred);
+
+    // Mic emblem circle to the right of text
+    const float ex = cx + 45.0f; // Emblem center x
+    const float er = 18.0f; // Emblem radius
+    g.drawEllipse(ex - er, cy - er, er*2, er*2, 2.0f);
+
+    // Three mics (simplified, green lines)
+    g.setColour(green);
+    const float mw = 2.0f; // mic line width
+    for (int i = 0; i < 3; ++i) {
+        const float angle = juce::MathConstants<float>::pi * 2.0f * i / 3.0f;
+        g.saveState();
+        g.addTransform(juce::AffineTransform::translation(ex, cy).rotated(angle));
+        // Mic: base at bottom, capsule at top (simplified)
+        g.drawLine(-4, 12, 4, 12, mw); // base
+        g.drawLine(0, 12, 0, 5, mw); // stand
+        // Yoke
+        juce::Path yoke;
+        yoke.startNewSubPath(-5, -2);
+        yoke.quadraticTo(-5, 5, 0, 5);
+        yoke.quadraticTo(5, 5, 5, -2);
+        g.strokePath(yoke, juce::PathStrokeType(mw));
+        // Capsule
+        juce::Path cap;
+        cap.startNewSubPath(-4, -2);
+        cap.lineTo(-4, -10);
+        cap.quadraticTo(-4, -14, 0, -14);
+        cap.quadraticTo(4, -14, 4, -10);
+        cap.lineTo(4, -2);
+        cap.quadraticTo(4, 2, 0, 2);
+        cap.quadraticTo(-4, 2, -4, -2);
+        g.strokePath(cap, juce::PathStrokeType(mw));
+        g.restoreState();
+    }
+}
+
 void DN1000Editor::paint(juce::Graphics& g) {
     g.drawImageAt(faceplate_, 0, 0);
+    drawBiteyLogo(g); // Bitey logo above top module
 
-    // Rack ears: cherry wood (Yamaha style, darker reddish-brown)
-    // Cherry: #c47a5a -> #a05a3a (30%) -> #7a3a2a (62%) -> #5a2a1a
+    // Rack ears: dark cherry wood (Yamaha PM1000 style, darker and redder)
+    // Dark cherry: #8a3a22 -> #6b2a18 (30%) -> #4d1e10 (62%) -> #331208
     for (int ear = 0; ear < 2; ++ear) {
         const float x = (ear == 0) ? 0.0f : (float)(kW - 52);
-        juce::ColourGradient wood(juce::Colour(0xffc47a5a), x, 0.0f,
-                                  juce::Colour(0xff5a2a1a), x + 52.0f, 0.0f, false);
-        wood.addColour(0.30, juce::Colour(0xffa05a3a));
-        wood.addColour(0.62, juce::Colour(0xff7a3a2a));
+        juce::ColourGradient wood(juce::Colour(0xff8a3a22), x, 0.0f,
+                                  juce::Colour(0xff331208), x + 52.0f, 0.0f, false);
+        wood.addColour(0.30, juce::Colour(0xff6b2a18));
+        wood.addColour(0.62, juce::Colour(0xff4d1e10));
         g.setGradientFill(wood);
         g.fillRect(x, 0.0f, 52.0f, (float)kH);
     }

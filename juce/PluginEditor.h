@@ -26,6 +26,7 @@ public:
     void setLevel(float level);
 private:
     void timerCallback() override;
+    void drawBiteyLogo(juce::Graphics& g);
     std::atomic<float> level_{0.0f};
     float displayLevel_ = 0.0f;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClipBulb)
@@ -82,5 +83,6 @@ private:
     void drawBoardTape(juce::Graphics& g);
 
     void timerCallback() override;
+    void drawBiteyLogo(juce::Graphics& g);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DN1000Editor)
 };
