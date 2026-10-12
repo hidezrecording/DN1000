@@ -38,6 +38,10 @@ public:
     juce::AudioProcessorValueTreeState apvts;
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
+    // Clip indicator levels (0.0 to 1.0+)
+    float getChannelALevel() const { return chA_.getLevel(); }
+    float getChannelBLevel() const { return chB_.getLevel(); }
+
 private:
     pm1000::Channel chA_, chB_;
     pm1000::MasterStage master_;

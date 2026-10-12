@@ -16,7 +16,22 @@ struct ChannelStrip {
     juce::Slider outMode; // 3-position: Tamura / Cinemag / Sumthang
 };
 
-class DN1000Editor : public juce::AudioProcessorEditor
+
+// ClipBulb — rainbow transitioning level indicator (from Bitey plugin)
+// Green -> Yellow -> Red based on signal level (0.0 to 1.0+)
+class ClipBulb : public juce::Component, private juce::Timer {
+public:
+    ClipBulb();
+    void paint(juce::Graphics& g) override;
+    void setLevel(float level);
+private:
+    void timerCallback() override;
+    std::atomic<float> level_{0.0f};
+    float displayLevel_ = 0.0f;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClipBulb)
+};
+
+class DN1000Editor : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
     explicit DN1000Editor(DN1000Processor&);
@@ -30,6 +45,7 @@ private:
 
     ChannelStrip strips_[2];
     juce::ToggleButton polA_, polB_, powerToggle_, linkToggle_;
+    ClipBulb clipA_, clipB_;
     bool ganging_ = false; // Prevents recursive link updates
 
     using SAtt = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -65,5 +81,6 @@ private:
     void drawTransformerSymbol(juce::Graphics& g, float x, float y);
     void drawBoardTape(juce::Graphics& g);
 
+    void timerCallback() override;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DN1000Editor)
 };

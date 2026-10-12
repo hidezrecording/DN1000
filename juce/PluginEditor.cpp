@@ -17,6 +17,51 @@ constexpr int kBassX = 510, kMidX = 585, kTrebleX = 660, kOutX = 760, kAmpX = 82
 constexpr int kModeX = 815;
 }
 
+
+// ClipBulb implementation (rainbow transitioning indicator)
+ClipBulb::ClipBulb() {
+    startTimerHz(30);
+}
+
+void ClipBulb::setLevel(float level) {
+    level_.store(level);
+}
+
+void ClipBulb::timerCallback() {
+    const float target = level_.load();
+    displayLevel_ += (target - displayLevel_) * 0.3f;
+    if (std::abs(target - displayLevel_) > 0.001f)
+        repaint();
+}
+
+void ClipBulb::paint(juce::Graphics& g) {
+    const float d = juce::jmin((float)getWidth(), (float)getHeight()) - 4.0f;
+    const float cx = getWidth() * 0.5f;
+    const float cy = getHeight() * 0.5f;
+    const float r = d * 0.5f;
+
+    const float lvl = juce::jlimit(0.0f, 1.2f, displayLevel_);
+    juce::Colour col;
+    if (lvl < 0.6f) col = juce::Colour(0xff2fe07a);      // Green
+    else if (lvl < 0.85f) col = juce::Colour(0xffffc020); // Yellow
+    else col = juce::Colour(0xffff3020);                 // Red
+
+    // Glow
+    const float glowA = 0.25f + 0.55f * juce::jmin(1.0f, lvl);
+    juce::ColourGradient glow(col.withAlpha(glowA), cx, cy,
+                              juce::Colour(0x00000000), cx, cy + r * 2.0f, true);
+    g.setGradientFill(glow);
+    g.fillEllipse(cx - r * 2.0f, cy - r * 2.0f, r * 4.0f, r * 4.0f);
+
+    // Bulb
+    juce::ColourGradient bulb(juce::Colour(0xffffffff), cx - r*0.3f, cy - r*0.4f,
+                              col, cx + r*0.3f, cy + r*0.4f, false);
+    g.setGradientFill(bulb);
+    g.fillEllipse(cx - r, cy - r, r * 2.0f, r * 2.0f);
+    g.setColour(juce::Colour(0x80000000));
+    g.drawEllipse(cx - r, cy - r, r * 2.0f, r * 2.0f, 1.0f);
+}
+
 DN1000Editor::DN1000Editor(DN1000Processor& p)
     : AudioProcessorEditor(p), proc_(p)
 {
@@ -134,6 +179,13 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     powerToggle_.getProperties().set("toggle", "amp");
     addAndMakeVisible(powerToggle_);
     addAndMakeVisible(linkToggle_);
+    // Clip indicators: between treble and output, up higher
+    // Position: x=710 (center between treble 660 and output 760), y=cy-50
+    addAndMakeVisible(clipA_);
+    addAndMakeVisible(clipB_);
+    clipA_.setBounds(700, kRowAY - 60, 20, 20);
+    clipB_.setBounds(700, kRowBY - 60, 20, 20);
+    startTimerHz(30); // Update clip indicators
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "power", powerToggle_));
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "link", linkToggle_));
     powerToggle_.setBounds(866, 205, 36, 70);
@@ -504,4 +556,10 @@ void DN1000Editor::paint(juce::Graphics& g) {
     g.setFont(PmStyle::condensed(11.0f));
     g.drawText("POWER", 829, 282, 110, 14, juce::Justification::centred);
     drawJewel(g, 884, 160, powerToggle_.getToggleState());
+}
+
+void DN1000Editor::timerCallback() {
+    // Update clip indicators from DSP levels
+    clipA_.setLevel(proc_.getChannelALevel());
+    clipB_.setLevel(proc_.getChannelBLevel());
 }

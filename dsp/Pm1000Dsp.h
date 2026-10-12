@@ -202,6 +202,7 @@ public:
 
     // Smoothed post-gain level, dB relative to 0 VU.
     float vuDb() const;
+    float getLevel() const { return vu_; } // Linear peak level for clip indicator
 
 private:
     double fs_ = 48000.0;
