@@ -13,8 +13,14 @@ DN1000Processor::~DN1000Processor() = default;
 
 bool DN1000Processor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
-    return layouts.getMainInputChannelSet() == juce::AudioChannelSet::stereo()
-        && layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
+    const auto in = layouts.getMainInputChannelSet();
+    const auto out = layouts.getMainOutputChannelSet();
+    // Support mono and stereo (mono uses Channel A only)
+    if (in == juce::AudioChannelSet::mono() && out == juce::AudioChannelSet::mono())
+        return true;
+    if (in == juce::AudioChannelSet::stereo() && out == juce::AudioChannelSet::stereo())
+        return true;
+    return false;
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout
@@ -139,17 +145,23 @@ void DN1000Processor::processBlock(juce::AudioBuffer<float>& buffer,
     float* outL = buffer.getWritePointer(0);
     float* outR = buffer.getNumChannels() > 1 ? buffer.getWritePointer(1) : nullptr;
 
+    const bool isMono = (outR == nullptr);
     for (int i = 0; i < n; ++i)
     {
-        const float a = chA_.processSample(inL[i]);
-        const float b = chB_.processSample(inR[i]);
-        float L, R;
-        master_.process(a, b, L, R);
-        outL[i] = L;
-        if (outR != nullptr)
+        if (isMono) {
+            // Mono: process through Channel A only
+            const float a = chA_.processSample(inL[i]);
+            float L, R;
+            master_.process(a, a, L, R); // Feed same to both for consistent master
+            outL[i] = L;
+        } else {
+            const float a = chA_.processSample(inL[i]);
+            const float b = chB_.processSample(inR[i]);
+            float L, R;
+            master_.process(a, b, L, R);
+            outL[i] = L;
             outR[i] = R;
-        else
-            outL[i] = 0.5f * (L + R);
+        }
     }
 }
 
