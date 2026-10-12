@@ -249,10 +249,10 @@ void MasterStage::setLevel(float level) {
 void MasterStage::reset() {}
 
 void MasterStage::process(float inL, float inR, float& outL, float& outR) {
-    // Crosstalk: -60 dB L/R bleed via shared PSU and proximity.
-    // Real consoles are never perfectly separated.
-    outL = inL * outLin_ + inR * outLin_ * 0.001f;
-    outR = inR * outLin_ + inL * outLin_ * 0.001f;
+    // Discrete L/R: no crosstalk (per user request for testing).
+    // Crosstalk model can be re-enabled later.
+    outL = inL * outLin_;
+    outR = inR * outLin_;
 }
 
 } // namespace pm1000
