@@ -382,9 +382,9 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
         { "-60", "-50", "-44", "-38", "-32", "-26", "-20", "-14", "-8", "+4" },
         { -135, -105, -75, -45, -15, 15, 45, 75, 105, 135 }, {}, 9.0f);
     for (auto* k : { &s.bassKnob, &s.midKnob, &s.trebleKnob })
-        drawDetentLabels(g, *k, { "+10", "0", "-10" }, { -135, 0, 135 },
+        drawDetentLabels(g, *k, { "-10", "0", "+10" }, { -135, 0, 135 },
                          { 22.0f, 14.0f, 22.0f }, 9.5f);
-    drawDetentLabels(g, s.outKnob, { "0", "10" }, { -135, 135 }, {}, 9.5f);
+    drawDetentLabels(g, s.outKnob, { "0", "UNITY" }, { -135, 135 }, {}, 9.5f);
 
     // Slide-switch position labels (left of each switch)
     auto slideLabels = [&](juce::Slider& sl, int x, const juce::StringArray& labs) {
@@ -396,11 +396,11 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
             g.drawText(labs[i], x, (int)(y - 7), 26, 14, juce::Justification::right);
         }
     };
-    slideLabels(s.hpfSlide, kHpfX - 36, { "OFF", "40", "80" });
+    slideLabels(s.hpfSlide, kHpfX - 36, { "80", "40", "OFF" });
     // HIGH CUT: 3 positions (OFF/20K/16K), labels lined up with HI-PASS
-    slideLabels(s.lpfSlide, kLpfX - 36, { "OFF", "20", "16" });
+    slideLabels(s.lpfSlide, kLpfX - 36, { "16", "20", "OFF" });
     drawStripLabel(g, "HIGH CUT", kLpfX, cy + 37);
-    slideLabels(s.midSlide, kMidSwX - 36, { "1K", "2K", "4K" });
+    slideLabels(s.midSlide, kMidSwX - 36, { "4K", "2K", "1K" });
 }
 
 void DN1000Editor::resized() {

@@ -46,7 +46,7 @@ DN1000Processor::createParameterLayout()
     auto gain010 = [](juce::String name, juce::String id) {
         return std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID { id, 1 }, name,
-            juce::NormalisableRange<float>(0.0f, 10.0f, 0.01f), 7.0f);
+            juce::NormalisableRange<float>(0.0f, 10.0f, 0.01f), 10.0f);
     };
 
     for (auto prefix : { juce::String("a"), juce::String("b") })
@@ -54,7 +54,7 @@ DN1000Processor::createParameterLayout()
         const juce::String chName = prefix == "a" ? "Ch A " : "Ch B ";
         params.push_back(choice(chName + "Input", prefix + "InputLevel",
             { "-60 dBm", "-50 dBm", "-44 dBm", "-38 dBm", "-32 dBm",
-              "-26 dBm", "-20 dBm", "-14 dBm", "-8 dBm", "+4 dBm" }, 5));
+              "-26 dBm", "-20 dBm", "-14 dBm", "-8 dBm", "+4 dBm" }, 9));
         params.push_back(toggle(chName + "Polarity", prefix + "Phase", false));
         params.push_back(toggle(chName + "Mic", prefix + "Mic", false));
         {

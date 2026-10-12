@@ -74,7 +74,7 @@ inline constexpr float kVuRefDbFs = -18.0f;
 // ChannelParams — one field per hardware control, per channel
 // —————————————————————————————————————————————————————————————————————
 struct ChannelParams {
-    int   inputDetent = 5;     // 0..9 → -60..+4 dBm (default: -26, straight up)
+    int   inputDetent = 9;     // 0..9 → -60..+4 dBm (default: +4, unity)
     bool  mic         = false; // MIC/LINE: mic adds +30 dB preamp gain
     bool  phaseInvert = false; // N/R
     int   hpfMode     = 0;     // 0=off, 1=40 Hz, 2=80 Hz
