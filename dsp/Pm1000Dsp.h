@@ -62,7 +62,10 @@ inline constexpr float kDetentSensDbm[10] =
 
 inline float detentGainDb(int d) {
     d = d < 0 ? 0 : (d > 9 ? 9 : d);
-    return (kDetentSensDbm[d] + 60.0f) + 12.0f; // 12,22,28,34,40,46,52,58,64,76 (reversed: CW=louder)
+    // Volume knob: 7 o'clock = -60dB (almost gone), 12 o'clock = 0dB (unity), 5 o'clock = +24dB (max)
+    // Detent 5 is 12 o'clock (center)
+    static constexpr float gains[10] = {-60.f, -48.f, -36.f, -24.f, -12.f, 0.f, 6.f, 12.f, 18.f, 24.f};
+    return gains[d];
 }
 
 inline constexpr float kMidFreqs[3] = { 1000.f, 2000.f, 4000.f }; // per manual + hardware photo
