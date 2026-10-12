@@ -73,7 +73,7 @@ private:
                           const std::vector<float>& radialOffsets = {},
                           float fontSize = 8.0f);
     void drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
-                           juce::StringRef top, juce::StringRef bottom);
+                           juce::StringRef top, juce::StringRef bottom, juce::Colour col);
     void drawDiJack(juce::Graphics& g, float x, float y);
     void drawLabelPlate(juce::Graphics& g, juce::StringRef text,
                         float x, float y);

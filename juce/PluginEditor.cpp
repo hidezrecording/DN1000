@@ -11,7 +11,7 @@ constexpr int kStripX = 120, kStripW = 728;
 constexpr int kStripAY = 50, kStripBY = 210, kStripH = 140;
 constexpr int kRowAY = 120, kRowBY = 280;
 
-constexpr int kMicX = 156, kInputX = 231;
+constexpr int kMicX = 156, kInputX = 236; // +5: evens mic/input/low-cut spacing
 constexpr int kHpfX = 320, kMidSwX = 380, kLpfX = 440;
 constexpr int kBassX = 510, kMidX = 585, kTrebleX = 660, kOutX = 760, kAmpX = 825;
 constexpr int kModeX = 815;
@@ -392,13 +392,17 @@ void DN1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
 
 void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
                                             juce::StringRef top,
-                                            juce::StringRef bottom) {
+                                            juce::StringRef bottom,
+                                            juce::Colour col) {
+    // Labels sit right up against the visible toggle hardware (bezel is
+    // ~22px at the component centre; anchor to centre, not the 56px bounds)
     const auto b = t.getBounds();
     const int cx = b.getCentreX();
-    g.setColour(juce::Colours::black); // Black for cream faceplate
+    const int cy = b.getCentreY();
+    g.setColour(col);
     g.setFont(PmStyle::condensed(10.0f));
-    g.drawText(top, cx - 24, b.getY() - 11, 48, 14, juce::Justification::centred);
-    g.drawText(bottom, cx - 24, b.getBottom() - 3, 48, 14, juce::Justification::centred);
+    g.drawText(top, cx - 24, cy - 28, 48, 14, juce::Justification::centred);
+    g.drawText(bottom, cx - 24, cy + 15, 48, 14, juce::Justification::centred);
 }
 
 void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
@@ -494,7 +498,7 @@ void DN1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool lit) {
 void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     // Horizontal silkscreen labels below each control
     drawStripLabel(g, "INPUT", kInputX, cy + 37, 1.30f);
-    drawStripLabel(g, "LOW CUT", kHpfX - 18, cy + 37, 1.30f);
+    drawStripLabel(g, "LOW CUT", kHpfX - 12, cy + 37, 1.30f);
     drawStripLabel(g, "MID FREQ", kMidSwX, cy + 37, 1.30f);
     drawStripLabel(g, "BASS", kBassX, cy + 37, 1.30f);
     drawStripLabel(g, "MID-RANGE", kMidX, cy + 37);
@@ -502,7 +506,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     drawStripLabel(g, "OUTPUT", kOutX, cy + 37, 1.30f);
 
     // Toggle markers
-    drawToggleMarkers(g, s.micToggle, "MIC", "LINE");
+    drawToggleMarkers(g, s.micToggle, "MIC", "LINE", PmStyle::silk()); // White: sits on dark strip
     drawStripLabel(g, "AMP", kAmpX, cy + 37, 1.0f);
     // T / C / S to the LEFT of the switch now
     g.setColour(juce::Colours::white.withAlpha(0.92f));
@@ -532,7 +536,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     slideLabels(s.hpfSlide, kHpfX - 36, { "80", "40", "OFF" });
     // HIGH CUT: 3 positions (OFF/20K/16K), labels lined up with HI-PASS
     slideLabels(s.lpfSlide, kLpfX - 36, { "16", "20", "OFF" });
-    drawStripLabel(g, "HIGH CUT", kLpfX + 18, cy + 37, 1.30f);
+    drawStripLabel(g, "HIGH CUT", kLpfX + 12, cy + 37, 1.30f);
     slideLabels(s.midSlide, kMidSwX - 36, { "4K", "2K", "1K" });
 }
 
@@ -542,27 +546,28 @@ void DN1000Editor::resized() {
 
 
 void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
-    // Bitey logo: "BITEY" + mic emblem
-    // Color changes with amp selector: T=green, C=hot pink, S=blue
-    // Centered above top module, fits in y=8 to y=52
-    const auto green = juce::Colour(0xffff69b4); // Hot pink (always)
-    const float cy = 25.0f; // Centered // Vertical center of logo area
-    const float cx = kW * 0.5f; // Horizontal center
+    // Bitey logo: mic emblem immediately LEFT of "BITEY", black
+    // Centred as a group above the top module
+    const auto green = juce::Colours::black; // Black (Nathan 2026-10-12)
+    const float cy = 25.0f; // Centered between plugin top and strip top
+    const float cx = kW * 0.5f;
 
-    // "BITEY" text: Arial Narrow Black (Swiss 911 equivalent)
+    // "BITEY" text: Arial Narrow Bold (Swiss 911 Compressed vibe)
     g.setColour(green);
     juce::Font font("Arial Narrow", 32.0f, juce::Font::bold);
-    // Condense it (Swiss 911 Compressed vibe)
     g.setFont(font);
     const juce::String text = "BITEY";
-    const float textW = 110.0f;
-    // Draw text centered, slightly left to make room for emblem
-    g.drawText(text, (int)(cx - textW/2 - 30), (int)(cy - 20), (int)textW, 40,
-               juce::Justification::centred);
-
-    // Mic emblem circle: about the height of the Y (~24px), close to the text
-    const float ex = cx + 33.0f; // Emblem center x (closer to Y)
+    const float textW = (float)font.getStringWidth(text);
     const float er = 12.0f; // Emblem radius (diameter 24 = height of Y)
+    const float gap = 5.0f; // Emblem sits immediately left of the B
+    const float groupW = er * 2.0f + gap + textW;
+    const float startX = cx - groupW * 0.5f;
+    const float ex = startX + er; // Emblem center x (left of the B)
+    const float textX = startX + er * 2.0f + gap;
+    g.drawText(text, (int)textX, (int)(cy - 20), (int)(textW + 4), 40,
+               juce::Justification::left);
+
+    // Mic emblem circle
     g.drawEllipse(ex - er, cy - er, er*2, er*2, 1.5f);
 
     // Three mics (Yamaha-style, tips form equilateral triangle)
@@ -624,9 +629,9 @@ void DN1000Editor::paint(juce::Graphics& g) {
     drawHandle(g, kW - 22);
 
     // — Left block: phase toggles —
-    drawToggleMarkers(g, polA_, "0", "180");
-    drawToggleMarkers(g, polB_, "0", "180");
-    drawToggleMarkers(g, linkToggle_, "UNLINK", "LINK");
+    drawToggleMarkers(g, polA_, "0", "180", juce::Colours::black);
+    drawToggleMarkers(g, polB_, "0", "180", juce::Colours::black);
+    drawToggleMarkers(g, linkToggle_, "UNLINK", "LINK", juce::Colours::black);
 
     // — Channel strips —
     for (int c = 0; c < 2; ++c) {
@@ -645,7 +650,7 @@ void DN1000Editor::paint(juce::Graphics& g) {
     // — Right block: power toggle + jewel —
     g.setColour(juce::Colours::black); // Black for cream faceplate
     g.setFont(PmStyle::condensed(11.0f));
-    g.drawText("POWER", 829, 278, 110, 14, juce::Justification::centred);
+    g.drawText("POWER", 829, 263, 110, 14, juce::Justification::centred); // Right under the toggle
     drawJewel(g, 884, 160, powerToggle_.getToggleState());
 }
 
