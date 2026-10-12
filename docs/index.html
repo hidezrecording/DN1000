@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="DN1000: a dual-channel recreation of a favorite vintage 70s console channel, modeled at the component level. VST3 and AU for Mac.">
+<title>DN1000 — Dual-Channel Console Strip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Roboto+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#090807;
+  --ink-2:#11100e;
+  --panel:#171512;
+  --panel-hi:#211e19;
+  --line:#4c4336;
+  --line-soft:#2d2923;
+  --paper:#eee1c3;
+  --paper-dim:#b9aa8d;
+  --amber:#f6a21b;
+  --amber-hi:#ffc45b;
+  --green:#69ed9a;
+  --wood:#b66a24;
+  --shadow:rgba(0,0,0,.64);
+  --font:"Roboto Condensed", "Arial Narrow", sans-serif;
+}
+@media (prefers-color-scheme:light){
+  :root{
+    --ink:#090807; --ink-2:#11100e; --panel:#171512; --panel-hi:#211e19;
+    --line:#4c4336; --line-soft:#2d2923; --paper:#eee1c3; --paper-dim:#b9aa8d;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--paper);
+  background:
+    radial-gradient(ellipse 76% 38% at 50% -8%,rgba(246,162,27,.105),transparent 68%),
+    radial-gradient(ellipse 55% 30% at 50% 42%,rgba(182,106,36,.045),transparent 72%),
+    linear-gradient(180deg,#0e0c09 0%,#070706 45%,#0c0a08 100%);
+  font-family:var(--font);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+body:before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.22;
+  background-image:repeating-linear-gradient(92deg,rgba(255,255,255,.008) 0,rgba(255,255,255,.008) 1px,transparent 1px,transparent 4px)
+}
+a{color:inherit}
+button,input{font:inherit}
+.shell{width:min(1240px,100%);margin:0 auto;padding:42px 24px 68px}
+
+.hero{text-align:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:12px;
+  font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber-hi)
+}
+.eyebrow:before,.eyebrow:after{content:"";width:34px;height:1px;background:linear-gradient(90deg,transparent,var(--amber))}
+.eyebrow:after{transform:scaleX(-1)}
+h1{
+  margin:16px auto 12px;max-width:880px;
+  font-size:clamp(36px,6.2vw,78px);line-height:.97;letter-spacing:-.025em;text-transform:uppercase;
+  color:#f4e8ca;text-shadow:0 1px 0 #4e4230,0 9px 32px rgba(0,0,0,.42)
+}
+.deck{margin:0 auto;max-width:760px;color:#c3b493;font-size:clamp(17px,2vw,21px);text-wrap:balance}
+.deck strong{color:var(--paper);font-weight:600}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:25px}
+.btn{
+  min-height:48px;padding:0 22px;border:1px solid transparent;border-radius:3px;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+  cursor:pointer;transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .2s ease,box-shadow .2s ease
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible,input:focus-visible{outline:2px solid var(--amber-hi);outline-offset:3px}
+.btn-primary{
+  color:#1b1003;background:linear-gradient(180deg,#ffd06f 0%,var(--amber-hi) 8%,var(--amber) 78%,#d27b08 100%);
+  border-color:#ffcf76;box-shadow:inset 0 1px rgba(255,255,255,.65),inset 0 -1px rgba(86,41,0,.28),0 12px 28px rgba(246,162,27,.2)
+}
+.btn-primary:hover{background:linear-gradient(180deg,#ffdc8c,#f6ab28 80%,#dd850c);box-shadow:inset 0 1px rgba(255,255,255,.72),inset 0 -1px rgba(86,41,0,.22),0 15px 34px rgba(246,162,27,.3)}
+.btn-secondary{background:linear-gradient(180deg,#1a1713,#100f0d);border-color:#655745;color:var(--paper);box-shadow:inset 0 1px rgba(255,255,255,.045),0 5px 14px rgba(0,0,0,.2)}
+.btn-secondary:hover{background:linear-gradient(180deg,#252018,#15120f);border-color:#8c795f}
+
+.hardware{
+  position:relative;margin:44px auto 0;container-type:inline-size;
+  border:1px solid #81745f;border-radius:7px;padding:8px;
+  background:linear-gradient(180deg,#625b50 0,#28241e 2px,#0c0b09 7px,#090807 calc(100% - 8px),#3a342b 100%);
+  box-shadow:0 38px 92px rgba(0,0,0,.72),0 0 0 1px #030302,0 0 0 2px rgba(147,125,91,.14),inset 0 1px rgba(255,255,255,.32),inset 0 -1px rgba(255,255,255,.08);
+  overflow:hidden;isolation:isolate
+}
+.hardware:before{
+  content:"";position:absolute;inset:8px;z-index:2;pointer-events:none;
+  background:linear-gradient(112deg,rgba(255,255,255,.085),transparent 14%,transparent 70%,rgba(255,255,255,.025));
+  mix-blend-mode:screen
+}
+.hardware:after{
+  content:"";position:absolute;inset:8px;z-index:2;pointer-events:none;border-radius:2px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),inset 0 -14px 24px rgba(0,0,0,.10)
+}
+.hardware img{display:block;width:100%;height:auto;border-radius:2px;filter:contrast(1.025) saturate(1.035)}
+.meter-glow{
+  position:absolute;left:39.72%;width:20.3%;height:23.2%;border-radius:7px;z-index:3;pointer-events:none;
+  background:linear-gradient(112deg,rgba(255,255,255,.105) 0%,transparent 25%,transparent 72%,rgba(87,209,236,.035) 100%),radial-gradient(ellipse at 50% 0%,rgba(255,188,88,.13),transparent 60%);
+  box-shadow:inset 0 0 16px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.12);
+  animation:breathe 3.3s ease-in-out infinite
+}
+.meter-glow.one{top:20.7%}.meter-glow.two{top:50.8%;animation-delay:-1.4s}
+.vu-sweep{
+  position:absolute;z-index:4;left:49.86%;width:10.55%;height:1px;
+  background:linear-gradient(90deg,#d4cdbd 0%,#f4ead5 72%,rgba(255,248,230,.75));
+  transform-origin:0 50%;box-shadow:0 .5px .5px rgba(0,0,0,.85);pointer-events:none;will-change:transform
+}
+.vu-sweep:before{content:"";position:absolute;left:-2px;top:-1.5px;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9d4c8,#696257 60%,#171511);box-shadow:0 0 0 .5px rgba(0,0,0,.72)}
+.vu-sweep.one{top:41.83%;animation:needleTop 3.1s ease-in-out infinite}
+.vu-sweep.two{top:71.44%;animation:needleBottom 3.8s ease-in-out -.7s infinite}
+.control-overlays{position:absolute;inset:8px;z-index:5;pointer-events:none}
+.knob-pointers{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.knob-pointers line{fill:none;stroke:#fffdf5;stroke-width:4.6;stroke-linecap:round;shape-rendering:geometricPrecision}
+.knob-pointers .level-pointer{stroke-width:5.2}
+.knob-pointers .knob-drift{
+  transform-box:view-box;transform-origin:var(--origin);
+  transform:rotate(var(--base-angle))
+}
+.meter-label{
+  position:absolute;z-index:6;left:50%;transform:translate(-50%,-50%);
+  padding:0 .2%;background:#111;color:#f5f3ec;border-radius:1px;
+  font-size:clamp(3px,.98cqw,14px);font-weight:700;line-height:1;letter-spacing:.015em;
+  text-shadow:0 1px 1px #000;pointer-events:none
+}
+.reverb-label{top:21.05%}
+.meter-screw{
+  position:absolute;left:50%;width:1.0714286%;aspect-ratio:1;transform:translate(-50%,-50%);
+  background:url("assets/main-meter-screw.png") center/100% 100% no-repeat
+}
+.reverb-screw{top:46.25%}
+.main-screw{top:76.34%}
+.clip-led{
+  position:absolute;left:var(--x);top:88.90%;width:.92%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  border:0;background:radial-gradient(circle at 38% 34%,#e9f7ff 0 12%,#4ca7ff 42%,#2776c7 100%);
+  color:#4ca7ff;box-shadow:0 0 3px currentColor;
+  animation:clipCycle 4s linear infinite
+}
+.clip-led::before,.clip-led::after{content:none}
+.clip-led.reverb{animation-delay:-2s}
+@keyframes needleTop{0%,100%{transform:rotate(-151deg)}27%{transform:rotate(-132deg)}48%{transform:rotate(-142deg)}72%{transform:rotate(-119deg)}}
+@keyframes needleBottom{0%,100%{transform:rotate(-151deg)}32%{transform:rotate(-137deg)}58%{transform:rotate(-124deg)}81%{transform:rotate(-143deg)}}
+@keyframes breathe{50%{opacity:.38;filter:saturate(1.25) brightness(1.14)}}
+@keyframes clipCycle{
+  0%,100%{color:#4ca7ff;background:radial-gradient(circle at 38% 34%,#e9f7ff 0 12%,#4ca7ff 42%,#2776c7 100%)}
+  25%{color:#66ef91;background:radial-gradient(circle at 38% 34%,#effff4 0 12%,#66ef91 42%,#2aa454 100%)}
+  50%{color:#ffd34e;background:radial-gradient(circle at 38% 34%,#fffbe6 0 12%,#ffd34e 42%,#c08a0c 100%)}
+  75%{color:#ff4c3f;background:radial-gradient(circle at 38% 34%,#fff0ed 0 12%,#ff4c3f 42%,#b7221c 100%)}
+}
+.caption{margin:12px 4px 0;text-align:right;color:#827766;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+
+.marquee{
+  margin-top:20px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
+  display:grid;grid-template-columns:repeat(4,1fr);color:#cdbf9f
+}
+.marquee span{padding:15px 10px;text-align:center;font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;border-right:1px solid var(--line-soft)}
+.marquee span:last-child{border-right:0}
+.marquee i{display:inline-block;width:6px;height:6px;margin-right:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(105,237,154,.7)}
+
+.story{
+  margin:86px auto 0;max-width:1040px;display:grid;grid-template-columns:.82fr 1.18fr;gap:70px;align-items:start
+}
+.section-number{color:var(--amber);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+h2{margin:8px 0 0;font-size:clamp(30px,4vw,52px);line-height:1;text-transform:uppercase;letter-spacing:-.015em}
+.story-copy{margin:0;color:var(--paper-dim);font-size:18px;line-height:1.65}
+.story-copy strong{color:var(--paper);font-weight:600}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:36px;background:#3a342b;border:1px solid #3f382e;box-shadow:0 18px 42px rgba(0,0,0,.16)}
+.feature{background:linear-gradient(145deg,#151310,#0e0d0b);padding:24px}
+.feature b{display:block;margin-bottom:8px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber-hi)}
+.feature p{margin:0;color:var(--paper-dim);font-size:15px;line-height:1.55}
+
+.get{
+  margin-top:86px;display:grid;grid-template-columns:.82fr 1.18fr;gap:1px;
+  background:#504637;border:1px solid #5e5240;box-shadow:0 34px 76px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.04)
+}
+.donate,.signup{background:linear-gradient(145deg,#211d17 0%,#151310 48%,#0f0e0c 100%);padding:clamp(28px,4vw,52px)}
+.donate{position:relative;overflow:hidden}
+.donate:after{content:"";position:absolute;width:210px;height:210px;right:-90px;bottom:-90px;border-radius:50%;border:36px solid rgba(246,162,27,.04)}
+.tape-label{
+  display:inline-block;padding:7px 14px;color:#211a10;background:#dfc17e;
+  clip-path:polygon(2% 8%,98% 0,100% 87%,2% 100%,0 52%);
+  transform:rotate(-1.5deg);font-family:"Permanent Marker",cursive;font-size:15px;letter-spacing:.05em
+}
+.donate h2,.signup h2{font-size:clamp(28px,3.6vw,45px);margin:19px 0 12px}
+.donate p,.signup-intro{color:var(--paper-dim);font-size:16px;line-height:1.6;margin:0}
+.donate .btn{width:100%;margin-top:24px;font-size:16px;min-height:56px;position:relative;z-index:1}
+.donation-suggest{margin-top:10px!important;color:#d8c39d!important;font-size:13px!important;text-align:center;letter-spacing:.04em}
+.owner-note{margin-top:4px!important;font-size:12px!important;color:#827766!important;text-align:center}
+.small-list{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:11px}
+.small-list li{color:#cbbd9e;font-size:14px;display:flex;gap:10px}
+.small-list li:before{content:"";flex:0 0 auto;width:8px;height:8px;margin-top:6px;border:1px solid var(--amber);transform:rotate(45deg)}
+
+form{margin-top:23px}
+.field{margin-top:15px}
+label,.legend{display:block;margin-bottom:7px;color:#e7d9ba;font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+input[type="text"],input[type="email"]{
+  width:100%;min-height:48px;padding:11px 13px;color:var(--paper);background:linear-gradient(180deg,#080706,#0d0c0a);border:1px solid #5a4f3f;border-radius:2px;font-size:16px;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.42),0 1px rgba(255,255,255,.025);transition:border-color .18s ease,box-shadow .18s ease
+}
+input[type="text"]:focus,input[type="email"]:focus{border-color:#b9863e;box-shadow:inset 0 2px 8px rgba(0,0,0,.42),0 0 0 1px rgba(246,162,27,.16)}
+input::placeholder{color:#7f7463}
+.radios{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.radio{
+  position:relative;display:flex;align-items:center;gap:10px;padding:13px 14px;margin:0;
+  border:1px solid #51483a;background:linear-gradient(180deg,#0d0c0a,#080706);color:#cfc1a4;border-radius:2px;cursor:pointer;font-size:15px;letter-spacing:.02em;text-transform:none;
+  box-shadow:inset 0 1px rgba(255,255,255,.025);transition:border-color .18s ease,background-color .18s ease,color .18s ease
+}
+.radio:has(input:checked){border-color:var(--amber);background:linear-gradient(180deg,#251b0d,#181108);color:#fff0ca;box-shadow:inset 0 0 12px rgba(246,162,27,.055)}
+.radio input{width:17px;height:17px;margin:0;accent-color:var(--amber)}
+.submit{width:100%;margin-top:18px}
+.status{display:none;margin-top:13px;padding:12px 14px;border:1px solid #665234;background:#17120b;color:#e9d2a6;font-size:14px}
+.status:not(:empty){display:block}
+.status.error{border-color:#7c4237;background:#20100d;color:#ffbaaa}
+.downloads{
+  display:none;margin-top:22px;padding-top:21px;border-top:1px solid var(--line);
+}
+.downloads.show{display:block;animation:reveal .45s ease both}
+.downloads h3{margin:0 0 12px;font-size:15px;letter-spacing:.09em;text-transform:uppercase}
+.download-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.download-grid .btn{padding:0 12px}
+.btn-disabled{cursor:not-allowed;opacity:.48;background:#12110f;border-color:#4a4338;color:#b2a894}
+.btn-disabled:hover{transform:none}
+.platform-card{display:none;margin-top:16px;border:1px solid #5b4b35;background:#0e0c09;padding:20px}
+.platform-card.show{display:block;animation:reveal .4s ease both}
+.platform-card h4{margin:0 0 5px;color:var(--amber-hi);font-size:15px;letter-spacing:.08em;text-transform:uppercase}
+.platform-card>p{margin:0;color:var(--paper-dim);font-size:14px;line-height:1.55}
+.steps{counter-reset:install;list-style:none;margin:18px 0 0;padding:0;display:grid;gap:14px}
+.steps li{counter-increment:install;display:grid;grid-template-columns:28px 1fr;gap:11px;align-items:start;color:#cdbf9f;font-size:14px;line-height:1.5}
+.steps li:before{content:counter(install);width:26px;height:26px;border:1px solid var(--amber);display:grid;place-items:center;color:var(--amber-hi);font-size:12px;font-weight:700}
+.steps strong{color:var(--paper);font-weight:600}
+.command{display:block;margin-top:7px;padding:10px 11px;border:1px solid #3f382e;background:#050504;color:#9cf0b8;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:normal;overflow-wrap:anywhere;user-select:all}
+.windows-note{margin-top:16px!important;padding:13px;border-left:2px solid var(--amber);background:#17120b;color:#e3d3b2!important}
+.form-fine{margin:12px 0 0;color:#8e8370;font-size:12px;line-height:1.45}
+
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line-soft);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:#8d816c;font-size:12px;letter-spacing:.04em}
+.js-reveal{transform:translateY(14px);filter:brightness(.88);transition:transform .7s ease,filter .7s ease}
+.js-reveal.in{transform:none;filter:none}
+@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media(max-width:850px){
+  .shell{padding:30px 16px 48px}.story,.get{grid-template-columns:1fr;gap:28px}.story{margin-top:64px}.get{gap:1px;margin-top:64px}.features{grid-template-columns:1fr}.marquee{grid-template-columns:1fr 1fr}.marquee span:nth-child(2){border-right:0}.marquee span:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+}
+@media(max-width:560px){
+  .shell{padding-left:12px;padding-right:12px}.hero{padding-top:8px}.hardware{margin-top:30px;padding:4px;border-radius:5px}.hardware:before,.hardware:after,.control-overlays{inset:4px}.caption{text-align:left;font-size:10px}.vu-sweep{height:.75px}.vu-sweep:before{width:3px;height:3px;left:-1.5px;top:-1px}.actions .btn{width:100%}.features{margin-top:24px}.story{gap:24px}.donate,.signup{padding:27px 20px}.download-grid{grid-template-columns:1fr}.marquee span{padding:12px 5px;font-size:10px}.owner-note{display:none}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.meter-glow,.vu-sweep,.clip-led{animation:none}.vu-sweep{transform:rotate(-134deg)}.clip-led{color:#66ef91;background:radial-gradient(circle at 38% 34%,#effff4 0 12%,#66ef91 42%,#2aa454 100%)}.js-reveal{transform:none;filter:none;transition:none}.btn{transition:none}}
+
+/* — DN1000 front panel (pure CSS recreation of the plugin) — */
+.panel{position:relative;width:100%;aspect-ratio:973/400;border-radius:2px;overflow:hidden;
+  background:linear-gradient(180deg,#fffdf7,#fdfbf3 60%,#f6f1e2);box-shadow:inset 0 0 0 1px rgba(90,70,40,.18)}
+.panel .ear{position:absolute;top:0;bottom:0;width:11.3%;
+  background:linear-gradient(90deg,#8a3a22,#6b2a18 55%,#4d1e10)}
+.panel .ear.l{left:0}.panel .ear.r{right:0}
+.panel .ear:before{content:"";position:absolute;top:6%;bottom:6%;width:2px;background:#6b4a2a;opacity:.7}
+.panel .ear.l:before{right:9px}.panel .ear.r:before{left:9px}
+.panel .strip{position:absolute;left:12.33%;width:74.85%;height:35%;background:#211a13;border-radius:6px;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.75),0 1px 0 rgba(255,255,255,.5)}
+.panel .strip.a{top:12.5%}.panel .strip.b{top:52.5%}
+.panel .knob{position:absolute;top:50%;width:8.6%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  box-shadow:0 2px 5px rgba(0,0,0,.6),inset 0 2px 3px rgba(255,255,255,.45),inset 0 -3px 5px rgba(0,0,0,.35)}
+.panel .knob:after{content:"";position:absolute;left:calc(50% - .75px);top:6%;width:1.5px;height:34%;background:#fffdf5;border-radius:1px;
+  transform-origin:50% 132%;transform:rotate(var(--rot,-20deg))}
+.k-orange{background:radial-gradient(circle at 36% 30%,#ffc46b,#ff9e1f 55%,#bf6509)}
+.k-lime{background:radial-gradient(circle at 36% 30%,#e6f28a,#bcd633 55%,#84a024)}
+.k-green{background:radial-gradient(circle at 36% 30%,#7ed491,#3ea653 55%,#2a6e38)}
+.k-dark{background:radial-gradient(circle at 36% 30%,#4c463e,#262019 60%,#100d0a)}
+.panel .clipdot{position:absolute;top:26%;width:2.4%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  border:1px solid #0a0908;animation:clipCycle 4s linear infinite}
+.panel .jewel{position:absolute;left:90.85%;top:40%;width:3.4%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 42% 34%,#ffb59d,#ff3b1f 55%,#b81a10);
+  box-shadow:0 0 0 3px #3c3c40,0 0 22px 6px rgba(255,42,24,.45);animation:breathe 3.3s ease-in-out infinite}
+.panel .pwr{position:absolute;left:90.85%;top:49.5%;transform:translateX(-50%);color:#17130c;
+  font-size:clamp(4px,1.05cqw,11px);font-weight:700;letter-spacing:.14em}
+.panel .tape{position:absolute;left:12.33%;top:2.4%;width:23%;padding:.9% 0;text-align:center;
+  background:linear-gradient(180deg,#dccb9f,#c9b586);color:#232323;transform:rotate(-.86deg);
+  font-family:"Permanent Marker",cursive;font-size:clamp(6px,2.1cqw,22px);letter-spacing:.28em;
+  clip-path:polygon(1% 12%,99% 0,100% 88%,1% 100%,0 55%);box-shadow:0 2px 5px rgba(0,0,0,.25)}
+.panel .wordmark{position:absolute;right:12.85%;top:5.4%;display:flex;align-items:center;gap:.45em;color:#14100b;
+  font-weight:700;font-size:clamp(6px,2.35cqw,25px);letter-spacing:.045em}
+.panel .wordmark .disc{width:.95em;height:.95em;border-radius:50%;border:.09em solid #14100b;position:relative;flex:0 0 auto}
+.panel .wordmark .disc:before{content:"";position:absolute;inset:14%;border-radius:50%;background:#14100b}
+.panel .strip .lab{position:absolute;bottom:7%;transform:translateX(-50%);color:#e8e2d2;
+  font-size:clamp(3px,.92cqw,10px);font-weight:600;letter-spacing:.12em;white-space:nowrap}
+
+</style>
+</head>
+<body>
+<main class="shell">
+  <section class="hero js-reveal">
+    <div class="eyebrow">Early access · native plugin</div>
+    <h1>A 70s Console Classic Reborn</h1>
+    <p class="deck"><strong>DN1000</strong> is a dual-channel recreation of a favorite vintage '70s mixer, modeled at the component level: transformer input, three discrete transistor stages, and three switchable output irons.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="#early-access">Get early access</a>
+      <a class="btn btn-secondary" href="#donate">Support DN1000</a>
+    </div>
+
+    <figure class="hardware" aria-label="DN1000 dual-channel console strip plugin interface with color-coded knobs, clip indicators and red power jewel">
+      <div class="panel" aria-hidden="true">
+        <span class="ear l"></span><span class="ear r"></span>
+        <span class="tape">DN1000</span>
+        <span class="wordmark"><span class="disc"></span>BITEY</span>
+        <div class="strip a">
+          <span class="knob k-dark" style="left:4.9%;--rot:-38deg"></span>
+          <span class="knob k-orange" style="left:15.9%;--rot:12deg"></span>
+          <span class="knob k-lime" style="left:53.6%;--rot:-64deg"></span>
+          <span class="knob k-lime" style="left:63.9%;--rot:24deg"></span>
+          <span class="knob k-lime" style="left:74.2%;--rot:-12deg"></span>
+          <span class="clipdot" style="left:79.9%"></span>
+          <span class="knob k-green" style="left:87.9%;--rot:6deg"></span>
+          <span class="lab" style="left:15.9%">INPUT</span>
+          <span class="lab" style="left:53.6%">BASS</span>
+          <span class="lab" style="left:63.9%">MID</span>
+          <span class="lab" style="left:74.2%">TREBLE</span>
+          <span class="lab" style="left:87.9%">OUTPUT</span>
+        </div>
+        <div class="strip b">
+          <span class="knob k-dark" style="left:4.9%;--rot:-38deg"></span>
+          <span class="knob k-orange" style="left:15.9%;--rot:-8deg"></span>
+          <span class="knob k-lime" style="left:53.6%;--rot:18deg"></span>
+          <span class="knob k-lime" style="left:63.9%;--rot:-30deg"></span>
+          <span class="knob k-lime" style="left:74.2%;--rot:44deg"></span>
+          <span class="clipdot" style="left:79.9%;animation-delay:-2s"></span>
+          <span class="knob k-green" style="left:87.9%;--rot:-18deg"></span>
+          <span class="lab" style="left:15.9%">INPUT</span>
+          <span class="lab" style="left:53.6%">BASS</span>
+          <span class="lab" style="left:63.9%">MID</span>
+          <span class="lab" style="left:74.2%">TREBLE</span>
+          <span class="lab" style="left:87.9%">OUTPUT</span>
+        </div>
+        <span class="jewel"></span>
+        <span class="pwr">POWER</span>
+      </div>
+    </figure>
+    <p class="caption" style="text-align:right">The DN1000 · two channels, three output irons</p>
+  </section>
+
+  <div class="marquee js-reveal" aria-label="Plugin formats and status">
+    <span><i></i>Early access available</span><span>VST3 + AU</span><span>Mac</span><span>Dual channel</span>
+  </div>
+
+  <section class="story js-reveal">
+    <div>
+      <span class="section-number">01 · The machine</span>
+      <h2>Built for the road.<br>Loved in the studio.</h2>
+    </div>
+    <p class="story-copy">In the 1970s, the finest <strong>sound reinforcement consoles</strong> were built fully discrete: transformer-coupled inputs, transistor gain stages, inductor EQ and power supplies with real muscle. Engineers began pulling channels out of those live rigs and racking them in studios, where they became first-call favorites. The DN1000 is one of those channels, recreated at the component level: an input transformer, three discrete transistor stages, and three switchable outputs, with power-supply sag, thermal drift and analog hiss completing the vintage behavior.</p>
+  </section>
+
+  <div class="features js-reveal">
+    <article class="feature"><b>Two discrete channels</b><p>Fully discrete left and right paths with per-channel component tolerances, mic/line inputs, low and high cuts, and optional stereo link.</p></article>
+    <article class="feature"><b>Three output irons</b><p>The original-style transformer, a hi-fi Cinemag, and a nickel-iron design with triode gain and beam-tetrode output. Three flavors, one switch.</p></article>
+    <article class="feature"><b>Alive, not static</b><p>Shared power-supply sag couples the channels, bias memory makes repeated peaks behave like real transistors, and warm-up drift rewards leaving it on.</p></article>
+  </div>
+
+  <section class="get js-reveal" id="early-access">
+    <aside class="donate" id="donate">
+      <span class="tape-label">KEEP DN1000 ALIVE</span>
+      <h2>Support the build.</h2>
+      <p>DN1000 is independent. <strong style="color:var(--paper)">Any amount is welcome</strong> and helps cover testing, installers, signing and the long road from early access to a finished 1.0 release.</p>
+
+      <a class="btn btn-primary" href="https://venmo.com/Nathan-Sabatino" target="_blank" rel="noopener" id="donateButton">Donate with Venmo</a>
+      <p class="donation-suggest">Suggested $10 · any amount is welcome</p>
+      <p class="owner-note">Venmo: @Nathan-Sabatino</p>
+
+      <ul class="small-list">
+        <li>Submit the form to access downloads.</li>
+        <li>Current macOS build includes VST3 and AU.</li>
+        <li>Updates continue throughout early access.</li>
+      </ul>
+    </aside>
+
+    <div class="signup">
+      <span class="section-number">02 · Download</span>
+      <h2>Join the early access list.</h2>
+      <p class="signup-intro">Enter your name, email and platform. Once the form is received, the download area opens below.</p>
+
+      <form id="signup-form" action="https://formspree.io/f/xaeqoppz" method="POST">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" data-fs-field required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" data-fs-field required>
+        </div>
+        <fieldset class="field" style="border:0;padding:0;margin-left:0;margin-right:0">
+          <legend class="legend">Platform</legend>
+          <div class="radios">
+            <label class="radio"><input type="radio" name="platform" value="macOS" data-fs-field required> Mac</label>
+            <label class="radio"><input type="radio" name="platform" value="Windows" data-fs-field required> Windows</label>
+          </div>
+        </fieldset>
+        <input type="hidden" name="product" value="DN1000">
+        <input type="hidden" name="_subject" value="New DN1000 early access signup">
+        <button class="btn btn-primary submit" type="submit">Unlock downloads</button>
+        <div class="status" data-fs-success role="status" aria-live="polite"></div>
+        <div class="status error" data-fs-error role="alert" aria-live="assertive"></div>
+      </form>
+
+      <div class="downloads" id="downloads" aria-live="polite">
+        <h3>Your early access download</h3>
+
+        <section class="platform-card" id="macDownloads" aria-labelledby="macDownloadTitle">
+          <h4 id="macDownloadTitle">macOS installation</h4>
+          <p>Download the latest Mac installer, then follow these steps if Gatekeeper or your DAW blocks DN1000.</p>
+          <a class="btn btn-secondary" style="width:100%;margin-top:16px" href="https://hidezrecording.github.io/DN1000/DN1000-Installer-macOS.pkg">Download Mac installer</a>
+          <ol class="steps">
+            <li><div><strong>Run the installer.</strong> Download and open the <code>.pkg</code> file. It removes any previous DN1000 build automatically.</div></li>
+            <li><div><strong>Approve it in Gatekeeper if macOS blocks it.</strong> Go to System Settings → Privacy &amp; Security, scroll down, then click “Open Anyway.”</div></li>
+            <li><div><strong>Clear quarantine if your DAW still refuses the plug-in.</strong> Open Terminal and run the AU command below. For VST3, use the second command.<code class="command">xattr -cr ~/Library/Audio/Plug-Ins/Components/DN1000.component</code><code class="command">xattr -cr ~/Library/Audio/Plug-Ins/VST3/DN1000.vst3</code></div></li>
+            <li><div><strong>Rescan plug-ins</strong> in your DAW, then load DN1000 as an AU or VST3.</div></li>
+          </ol>
+        </section>
+
+        <section class="platform-card" id="windowsDownloads" aria-labelledby="windowsDownloadTitle">
+          <h4 id="windowsDownloadTitle">Windows early access</h4>
+          <p>The Windows installer will appear on the same GitHub releases page when it is ready.</p>
+          <a class="btn btn-secondary" style="width:100%;margin-top:16px" href="https://github.com/hidezrecording/DN1000/releases" target="_blank" rel="noopener">Check Windows releases ↗</a>
+          <p class="windows-note"><strong>Windows build coming soon.</strong> You’re on the mailing list, and we’ll notify you when it is available.</p>
+        </section>
+      </div>
+      <p class="form-fine">Used only for DN1000 early access updates and release notices. No list-selling, no unrelated mail.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>DN1000 · Dual-Channel Console Strip</span>
+    <span>Independent early access · macOS VST3 / AU</span>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var reveals = document.querySelectorAll('.js-reveal');
+  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {threshold:.12});
+    reveals.forEach(function(el){ observer.observe(el); });
+  } else {
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  var form = document.getElementById('signup-form');
+  var success = form.querySelector('[data-fs-success]');
+  var downloads = document.getElementById('downloads');
+  var macDownloads = document.getElementById('macDownloads');
+  var windowsDownloads = document.getElementById('windowsDownloads');
+  var selectedPlatform = '';
+
+  form.addEventListener('submit', function(){
+    var selected = form.querySelector('input[name="platform"]:checked');
+    selectedPlatform = selected ? selected.value : '';
+  });
+
+  function revealDownloads(){
+    macDownloads.classList.toggle('show', selectedPlatform === 'macOS');
+    windowsDownloads.classList.toggle('show', selectedPlatform === 'Windows');
+    downloads.classList.add('show');
+    downloads.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  var successObserver = new MutationObserver(function(){
+    if (success.textContent.trim() && !success.hidden) revealDownloads();
+  });
+  successObserver.observe(success, {childList:true,subtree:true,characterData:true,attributes:true});
+  form.addEventListener('formspree:success', revealDownloads);
+})();
+
+window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+formspree('initForm', { formElement: '#signup-form', formId: 'xaeqoppz' });
+</script>
+<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
+</body>
+</html>
