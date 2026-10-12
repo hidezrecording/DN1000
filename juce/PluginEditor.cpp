@@ -602,7 +602,7 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
 
 void DN1000Editor::paint(juce::Graphics& g) {
     g.drawImageAt(faceplate_, 0, 0);
-    drawBiteyLogo(g); // Bitey logo above top module
+    // drawBiteyLogo(g); // TEMP DISABLED - build error
 
     // Rack ears: dark cherry wood (Yamaha PM1000 style, darker and redder)
     // Dark cherry: #8a3a22 -> #6b2a18 (30%) -> #4d1e10 (62%) -> #331208
