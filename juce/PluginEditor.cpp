@@ -560,36 +560,41 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
     g.drawText(text, (int)(cx - textW/2 - 30), (int)(cy - 20), (int)textW, 40,
                juce::Justification::centred);
 
-    // Mic emblem circle to the right of text
-    const float ex = cx + 45.0f; // Emblem center x
-    const float er = 18.0f; // Emblem radius
-    g.drawEllipse(ex - er, cy - er, er*2, er*2, 2.0f);
+    // Mic emblem circle: about the height of the Y (~24px), close to the text
+    const float ex = cx + 33.0f; // Emblem center x (closer to Y)
+    const float er = 12.0f; // Emblem radius (diameter 24 = height of Y)
+    g.drawEllipse(ex - er, cy - er, er*2, er*2, 1.5f);
 
-    // Three mics (simplified, green lines)
+    // Three mics (Yamaha-style, tips form equilateral triangle)
+    // FIXED: rotate around emblem center (was rotating around origin, mics flew off)
     g.setColour(green);
-    const float mw = 2.0f; // mic line width
+    const float mw = 1.3f;
     for (int i = 0; i < 3; ++i) {
         const float angle = juce::MathConstants<float>::pi * 2.0f * i / 3.0f;
         g.saveState();
-        g.addTransform(juce::AffineTransform::translation(ex, cy).rotated(angle));
-        // Mic: base at bottom, capsule at top (simplified)
-        g.drawLine(-4, 12, 4, 12, mw); // base
-        g.drawLine(0, 12, 0, 5, mw); // stand
+        // Rotate around (ex, cy) so mics stay in the circle
+        g.addTransform(juce::AffineTransform::rotation(angle, ex, cy));
+        // Mic drawn relative to emblem center: base down, capsule up
+        const float bx = ex, by = cy;
+        // Base
+        g.drawLine(bx - 3, by + 9, bx + 3, by + 9, mw);
+        // Stand
+        g.drawLine(bx, by + 9, bx, by + 4, mw);
         // Yoke
         juce::Path yoke;
-        yoke.startNewSubPath(-5, -2);
-        yoke.quadraticTo(-5, 5, 0, 5);
-        yoke.quadraticTo(5, 5, 5, -2);
+        yoke.startNewSubPath(bx - 4, by - 1);
+        yoke.quadraticTo(bx - 4, by + 4, bx, by + 4);
+        yoke.quadraticTo(bx + 4, by + 4, bx + 4, by - 1);
         g.strokePath(yoke, juce::PathStrokeType(mw));
-        // Capsule
+        // Capsule (tall)
         juce::Path cap;
-        cap.startNewSubPath(-4, -2);
-        cap.lineTo(-4, -10);
-        cap.quadraticTo(-4, -14, 0, -14);
-        cap.quadraticTo(4, -14, 4, -10);
-        cap.lineTo(4, -2);
-        cap.quadraticTo(4, 2, 0, 2);
-        cap.quadraticTo(-4, 2, -4, -2);
+        cap.startNewSubPath(bx - 3.5f, by - 1);
+        cap.lineTo(bx - 3.5f, by - 7);
+        cap.quadraticTo(bx - 3.5f, by - 10, bx, by - 10);
+        cap.quadraticTo(bx + 3.5f, by - 10, bx + 3.5f, by - 7);
+        cap.lineTo(bx + 3.5f, by - 1);
+        cap.quadraticTo(bx + 3.5f, by + 1.5f, bx, by + 1.5f);
+        cap.quadraticTo(bx - 3.5f, by + 1.5f, bx - 3.5f, by - 1);
         g.strokePath(cap, juce::PathStrokeType(mw));
         g.restoreState();
     }
