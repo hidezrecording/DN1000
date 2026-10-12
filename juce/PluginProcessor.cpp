@@ -1,7 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-Hamamatsu1000Processor::Hamamatsu1000Processor()
+DN1000Processor::DN1000Processor()
     : AudioProcessor(BusesProperties()
                         .withInput("Input", juce::AudioChannelSet::stereo(), true)
                         .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
@@ -9,16 +9,16 @@ Hamamatsu1000Processor::Hamamatsu1000Processor()
 {
 }
 
-Hamamatsu1000Processor::~Hamamatsu1000Processor() = default;
+DN1000Processor::~DN1000Processor() = default;
 
-bool Hamamatsu1000Processor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool DN1000Processor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
     return layouts.getMainInputChannelSet() == juce::AudioChannelSet::stereo()
         && layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout
-Hamamatsu1000Processor::createParameterLayout()
+DN1000Processor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
@@ -82,7 +82,7 @@ Hamamatsu1000Processor::createParameterLayout()
     return { params.begin(), params.end() };
 }
 
-void Hamamatsu1000Processor::prepareToPlay(double sampleRate, int)
+void DN1000Processor::prepareToPlay(double sampleRate, int)
 {
     chA_.prepare(sampleRate);
     chB_.prepare(sampleRate);
@@ -91,9 +91,9 @@ void Hamamatsu1000Processor::prepareToPlay(double sampleRate, int)
     syncParamsToDsp();
 }
 
-void Hamamatsu1000Processor::releaseResources() {}
+void DN1000Processor::releaseResources() {}
 
-pm1000::ChannelParams Hamamatsu1000Processor::channelParamsFor(const juce::String& prefix)
+pm1000::ChannelParams DN1000Processor::channelParamsFor(const juce::String& prefix)
 {
     pm1000::ChannelParams p;
     p.inputDetent = (int)std::round(apvts.getRawParameterValue(prefix + "InputLevel")->load());
@@ -114,13 +114,13 @@ pm1000::ChannelParams Hamamatsu1000Processor::channelParamsFor(const juce::Strin
     return p;
 }
 
-void Hamamatsu1000Processor::syncParamsToDsp()
+void DN1000Processor::syncParamsToDsp()
 {
     chA_.setParams(channelParamsFor("a"));
     chB_.setParams(channelParamsFor("b"));
 }
 
-void Hamamatsu1000Processor::processBlock(juce::AudioBuffer<float>& buffer,
+void DN1000Processor::processBlock(juce::AudioBuffer<float>& buffer,
                                           juce::MidiBuffer&)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -152,18 +152,18 @@ void Hamamatsu1000Processor::processBlock(juce::AudioBuffer<float>& buffer,
     }
 }
 
-juce::AudioProcessorEditor* Hamamatsu1000Processor::createEditor()
+juce::AudioProcessorEditor* DN1000Processor::createEditor()
 {
-    return new Hamamatsu1000Editor(*this);
+    return new DN1000Editor(*this);
 }
 
-void Hamamatsu1000Processor::getStateInformation(juce::MemoryBlock& destData)
+void DN1000Processor::getStateInformation(juce::MemoryBlock& destData)
 {
     if (auto xml = apvts.copyState().createXml())
         copyXmlToBinary(*xml, destData);
 }
 
-void Hamamatsu1000Processor::setStateInformation(const void* data, int sizeInBytes)
+void DN1000Processor::setStateInformation(const void* data, int sizeInBytes)
 {
     if (auto xml = getXmlFromBinary(data, sizeInBytes))
         if (xml->hasTagName(apvts.state.getType()))
@@ -173,5 +173,5 @@ void Hamamatsu1000Processor::setStateInformation(const void* data, int sizeInByt
 // This function is called by the JUCE plugin wrappers to create the filter.
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new Hamamatsu1000Processor();
+    return new DN1000Processor();
 }

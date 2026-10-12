@@ -17,7 +17,7 @@ constexpr int kBassX = 510, kMidX = 585, kTrebleX = 660, kOutX = 760, kAmpX = 82
 constexpr int kModeX = 815;
 }
 
-Hamamatsu1000Editor::Hamamatsu1000Editor(Hamamatsu1000Processor& p)
+DN1000Editor::DN1000Editor(DN1000Processor& p)
     : AudioProcessorEditor(p), proc_(p)
 {
     setLookAndFeel(&laf_);
@@ -82,7 +82,7 @@ Hamamatsu1000Editor::Hamamatsu1000Editor(Hamamatsu1000Processor& p)
     powerToggle_.onClick = [this] { repaint(); }; // refresh the jewel
 }
 
-void Hamamatsu1000Editor::setupRotary(juce::Slider& s, float min, float max,
+void DN1000Editor::setupRotary(juce::Slider& s, float min, float max,
                                       float step, juce::StringRef knobStyle) {
     s.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     s.setRotaryParameters(kRotStart, kRotEnd, true);
@@ -93,7 +93,7 @@ void Hamamatsu1000Editor::setupRotary(juce::Slider& s, float min, float max,
     addAndMakeVisible(s);
 }
 
-void Hamamatsu1000Editor::setupSlide(juce::Slider& s) {
+void DN1000Editor::setupSlide(juce::Slider& s) {
     s.setSliderStyle(juce::Slider::LinearVertical);
     s.setRange(0.0, 2.0, 1.0);
     s.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
@@ -102,13 +102,13 @@ void Hamamatsu1000Editor::setupSlide(juce::Slider& s) {
     addAndMakeVisible(s);
 }
 
-void Hamamatsu1000Editor::setupBareToggle(juce::ToggleButton& t) {
+void DN1000Editor::setupBareToggle(juce::ToggleButton& t) {
     t.setClickingTogglesState(true);
     t.getProperties().set("toggle", "bare");
     addAndMakeVisible(t);
 }
 
-void Hamamatsu1000Editor::layoutStrip(ChannelStrip& s, int cy) {
+void DN1000Editor::layoutStrip(ChannelStrip& s, int cy) {
     s.micToggle.setBounds(kMicX - 15, cy - 28, 30, 56);
     s.inputKnob.setBounds(kInputX - 39, cy - 39, 78, 78);
     s.hpfSlide.setBounds(kHpfX - 8, cy - 36, 16, 72);
@@ -124,7 +124,7 @@ void Hamamatsu1000Editor::layoutStrip(ChannelStrip& s, int cy) {
 // —————————————————————————————————————————————————————————————————————
 // Static illustration helpers
 // —————————————————————————————————————————————————————————————————————
-void Hamamatsu1000Editor::renderFaceplate() {
+void DN1000Editor::renderFaceplate() {
     faceplate_ = juce::Image(juce::Image::RGB, kW, kH, false);
     juce::Graphics g(faceplate_);
     g.fillAll(PmStyle::face());
@@ -169,7 +169,7 @@ void Hamamatsu1000Editor::renderFaceplate() {
     g.fillRect(0, kH - 110, kW, 110);
 }
 
-void Hamamatsu1000Editor::drawScrew(juce::Graphics& g, float x, float y) {
+void DN1000Editor::drawScrew(juce::Graphics& g, float x, float y) {
     g.setColour(juce::Colour(0xff3a3a3e));
     g.fillEllipse(x - 7, y - 7, 14, 14);
     g.setColour(juce::Colour(0xff1e1e20));
@@ -178,7 +178,7 @@ void Hamamatsu1000Editor::drawScrew(juce::Graphics& g, float x, float y) {
     g.drawLine(x - 4.5f, y + 1.5f, x + 4.5f, y - 1.5f, 2.0f);
 }
 
-void Hamamatsu1000Editor::drawHandle(juce::Graphics& g, float x) {
+void DN1000Editor::drawHandle(juce::Graphics& g, float x) {
     const float y0 = 118.0f, y1 = 282.0f;
     const float barX = x, footX = x < kW / 2 ? x + 26.0f : x - 26.0f;
     auto metal = [&](float x0) {
@@ -197,7 +197,7 @@ void Hamamatsu1000Editor::drawHandle(juce::Graphics& g, float x) {
     g.drawRoundedRectangle(barX - 7, y0, 14, y1 - y0, 7.0f, 1.0f);
 }
 
-void Hamamatsu1000Editor::drawDiJack(juce::Graphics& g, float x, float y) {
+void DN1000Editor::drawDiJack(juce::Graphics& g, float x, float y) {
     juce::ColourGradient nut(juce::Colour(0xffd8d8dc), x - 16, y - 16,
                              juce::Colour(0xff7e7e84), x + 16, y + 16, false);
     g.setGradientFill(nut);
@@ -215,7 +215,7 @@ void Hamamatsu1000Editor::drawDiJack(juce::Graphics& g, float x, float y) {
     g.drawEllipse(x - 9, y - 9, 18, 18, 1.5f);
 }
 
-void Hamamatsu1000Editor::drawLabelPlate(juce::Graphics& g, juce::StringRef text,
+void DN1000Editor::drawLabelPlate(juce::Graphics& g, juce::StringRef text,
                                          float x, float y) {
     g.setColour(juce::Colour(0xff141416));
     g.fillRoundedRectangle(x - 24, y - 9, 48, 18, 2.0f);
@@ -225,7 +225,7 @@ void Hamamatsu1000Editor::drawLabelPlate(juce::Graphics& g, juce::StringRef text
                juce::Justification::centred);
 }
 
-void Hamamatsu1000Editor::drawStripLabel(juce::Graphics& g, juce::StringRef text,
+void DN1000Editor::drawStripLabel(juce::Graphics& g, juce::StringRef text,
                                          int cx, int y) {
     juce::Graphics::ScopedSaveState ss(g);
     // Hardware silkscreen: bold, near-normal width, crisp white
@@ -236,7 +236,7 @@ void Hamamatsu1000Editor::drawStripLabel(juce::Graphics& g, juce::StringRef text
     g.drawText(text, cx - 60, y, 120, 15, juce::Justification::centred);
 }
 
-void Hamamatsu1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
+void DN1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
                                            const juce::StringArray& labels,
                                            const std::vector<float>& anglesDeg,
                                            const std::vector<float>& radialOffsets,
@@ -256,7 +256,7 @@ void Hamamatsu1000Editor::drawDetentLabels(juce::Graphics& g, juce::Slider& s,
     }
 }
 
-void Hamamatsu1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
+void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
                                             juce::StringRef top,
                                             juce::StringRef bottom) {
     const auto b = t.getBounds();
@@ -267,7 +267,7 @@ void Hamamatsu1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButto
     g.drawText(bottom, cx - 24, b.getBottom() + 2, 48, 14, juce::Justification::centred);
 }
 
-void Hamamatsu1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
+void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
     // Transformer glyph: two coupled coils (simplified schematic symbol)
     g.setColour(PmStyle::silk());
     const float r = 6.5f;
@@ -275,7 +275,7 @@ void Hamamatsu1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, floa
     g.drawEllipse(x - r + 4.0f, y - r, r * 2.0f, r * 2.0f, 1.8f);
 }
 
-void Hamamatsu1000Editor::drawBoardTape(juce::Graphics& g) {
+void DN1000Editor::drawBoardTape(juce::Graphics& g) {
     const float tw = 280.0f, th = 36.0f;
     const float tx = (973.0f - tw) * 0.5f, ty = 359.0f;
     const float cx = tx + tw * 0.5f, cy = ty + th * 0.5f;
@@ -315,7 +315,7 @@ void Hamamatsu1000Editor::drawBoardTape(juce::Graphics& g) {
     }
 }
 
-void Hamamatsu1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool lit) {
+void DN1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool lit) {
     // Realistic red pilot jewel: knurled bezel + glass lens
     const float r = 15.0f;
     // Bezel
@@ -357,7 +357,7 @@ void Hamamatsu1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool li
     g.drawEllipse(x - r, y - r, r * 2, r * 2, 1.5f);
 }
 
-void Hamamatsu1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
+void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     // Horizontal silkscreen labels below each control
     drawStripLabel(g, "INPUT", kInputX, cy + 37);
     drawStripLabel(g, "LOW CUT", kHpfX, cy + 37);
@@ -403,11 +403,11 @@ void Hamamatsu1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy)
     slideLabels(s.midSlide, kMidSwX - 36, { "1K", "2K", "4K" });
 }
 
-void Hamamatsu1000Editor::resized() {
+void DN1000Editor::resized() {
     // Fixed-size rack panel; layout done in the constructor.
 }
 
-void Hamamatsu1000Editor::paint(juce::Graphics& g) {
+void DN1000Editor::paint(juce::Graphics& g) {
     g.drawImageAt(faceplate_, 0, 0);
 
     // Rack ears

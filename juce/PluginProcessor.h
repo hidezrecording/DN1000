@@ -6,11 +6,11 @@
 // stereo in → Ch A (L) / Ch B (R), each INPUT → POL → HI-PASS →
 // BASS/MID-RANGE (700/1.6k/3.2k)/TREBLE → OUTPUT → output-transformer
 // color → stereo out. POWER is a hard bypass.
-class Hamamatsu1000Processor : public juce::AudioProcessor
+class DN1000Processor : public juce::AudioProcessor
 {
 public:
-    Hamamatsu1000Processor();
-    ~Hamamatsu1000Processor() override;
+    DN1000Processor();
+    ~DN1000Processor() override;
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -20,7 +20,7 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
 
-    const juce::String getName() const override { return "Hamamatsu 1000"; }
+    const juce::String getName() const override { return "DN1000"; }
     bool acceptsMidi() const override { return false; }
     bool producesMidi() const override { return false; }
     bool isMidiEffect() const override { return false; }
@@ -45,5 +45,5 @@ private:
     pm1000::ChannelParams channelParamsFor(const juce::String& prefix);
     void syncParamsToDsp();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Hamamatsu1000Processor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DN1000Processor)
 };

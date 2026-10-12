@@ -1,5 +1,5 @@
 #pragma once
-// PmUI — hardware-matched look for the Hamamatsu 1000 rack unit.
+// PmUI — hardware-matched look for the DN1000 rack unit.
 // Visual authority: the owner's gray-hammered 19" rack unit — gray
 // hammered faceplate, black channel strips, orange INPUT knobs, yellow
 // EQ knobs, green OUTPUT knobs (black pointers), slide switches,

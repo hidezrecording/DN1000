@@ -1,5 +1,5 @@
 #pragma once
-// Hamamatsu 1000 — 19" rack unit GUI, identical to the owner's hardware:
+// DN1000 — 19" rack unit GUI, identical to the owner's hardware:
 // gray hammered faceplate, two black channel strips (MIC/LINE toggle,
 // INPUT orange knob, HI-PASS + MID RANGE slide switches, BASS/MID-RANGE/
 // TREBLE lime knobs, OUTPUT green knob), DI jacks + POL toggles (left),
@@ -16,16 +16,16 @@ struct ChannelStrip {
     juce::Slider outMode; // 3-position: Tamura / Cinemag / Sumthang
 };
 
-class Hamamatsu1000Editor : public juce::AudioProcessorEditor
+class DN1000Editor : public juce::AudioProcessorEditor
 {
 public:
-    explicit Hamamatsu1000Editor(Hamamatsu1000Processor&);
-    ~Hamamatsu1000Editor() override = default;
+    explicit DN1000Editor(DN1000Processor&);
+    ~DN1000Editor() override = default;
     void paint(juce::Graphics& g) override;
     void resized() override;
 
 private:
-    Hamamatsu1000Processor& proc_;
+    DN1000Processor& proc_;
     PmLookAndFeel laf_;
 
     ChannelStrip strips_[2];
@@ -64,5 +64,5 @@ private:
     void drawTransformerSymbol(juce::Graphics& g, float x, float y);
     void drawBoardTape(juce::Graphics& g);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Hamamatsu1000Editor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DN1000Editor)
 };

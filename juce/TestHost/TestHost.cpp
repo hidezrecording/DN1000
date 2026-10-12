@@ -13,7 +13,7 @@ public:
         formatManager.registerBasicFormats();
         
         // Create the real DN1000 processor and editor
-        processor = std::make_unique<Hamamatsu1000Processor>();
+        processor = std::make_unique<DN1000Processor>();
         editor = std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
         addAndMakeVisible(editor.get());
         
@@ -123,7 +123,7 @@ private:
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     std::unique_ptr<juce::FileChooser> chooser;
     
-    std::unique_ptr<Hamamatsu1000Processor> processor;
+    std::unique_ptr<DN1000Processor> processor;
     std::unique_ptr<juce::AudioProcessorEditor> editor;
     
     juce::TextButton openButton, playButton;
