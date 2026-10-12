@@ -35,31 +35,52 @@ void ClipBulb::timerCallback() {
 }
 
 void ClipBulb::paint(juce::Graphics& g) {
-    const float d = juce::jmin((float)getWidth(), (float)getHeight()) - 4.0f;
+    // Bitey-style: chrome hex socket with glowing core (green->yellow->red)
+    const float hexD = 16.0f; // Smaller (was 21.5 in Bitey)
     const float cx = getWidth() * 0.5f;
-    const float cy = getHeight() * 0.5f;
-    const float r = d * 0.5f;
+    const float cy = getHeight() * 0.5f - 4.0f; // Shift up to make room for CLIP text below
 
     const float lvl = juce::jlimit(0.0f, 1.2f, displayLevel_);
-    juce::Colour col;
-    if (lvl < 0.6f) col = juce::Colour(0xff2fe07a);      // Green
-    else if (lvl < 0.85f) col = juce::Colour(0xffffc020); // Yellow
-    else col = juce::Colour(0xffff3020);                 // Red
+    juce::Colour coreCol;
+    if (lvl < 0.6f) coreCol = juce::Colour(0xff2fe07a);
+    else if (lvl < 0.85f) coreCol = juce::Colour(0xffffc020);
+    else coreCol = juce::Colour(0xffff3020);
 
-    // Glow
+    // Hex socket (chrome)
+    juce::Path hex;
+    const float hx[6] = { 0.25f, 0.75f, 0.98f, 0.75f, 0.25f, 0.02f };
+    const float hy[6] = { 0.02f, 0.02f, 0.50f, 0.98f, 0.98f, 0.50f };
+    for (int i = 0; i < 6; ++i) {
+        const float px = cx - hexD * 0.5f + hx[i] * hexD;
+        const float py = cy - hexD * 0.5f + hy[i] * hexD;
+        if (i == 0) hex.startNewSubPath(px, py);
+        else hex.lineTo(px, py);
+    }
+    hex.closeSubPath();
+    juce::ColourGradient hg(juce::Colour(0xffdedede), cx - hexD*0.5f, cy - hexD*0.5f,
+                            juce::Colour(0xff686868), cx + hexD*0.5f, cy + hexD*0.5f, false);
+    hg.addColour(0.38, juce::Colour(0xff878787));
+    hg.addColour(0.58, juce::Colour(0xffcfcfcf));
+    g.setGradientFill(hg);
+    g.fillPath(hex);
+
+    // Glowing core
+    const float coreR = hexD * 0.28f;
     const float glowA = 0.25f + 0.55f * juce::jmin(1.0f, lvl);
-    juce::ColourGradient glow(col.withAlpha(glowA), cx, cy,
-                              juce::Colour(0x00000000), cx, cy + r * 2.0f, true);
+    juce::ColourGradient glow(coreCol.withAlpha(glowA), cx, cy,
+                              juce::Colour(0x00000000), cx, cy + coreR * 2.2f, true);
     g.setGradientFill(glow);
-    g.fillEllipse(cx - r * 2.0f, cy - r * 2.0f, r * 4.0f, r * 4.0f);
+    g.fillEllipse(cx - coreR*2.2f, cy - coreR*2.2f, coreR*4.4f, coreR*4.4f);
+    juce::ColourGradient core(juce::Colour(0xe6ffffff), cx - coreR*0.28f, cy - coreR*0.44f,
+                              coreCol.withAlpha(0.85f), cx + coreR*0.3f, cy + coreR*0.4f, true);
+    g.setGradientFill(core);
+    g.fillEllipse(cx - coreR, cy - coreR, coreR*2.0f, coreR*2.0f);
 
-    // Bulb
-    juce::ColourGradient bulb(juce::Colour(0xffffffff), cx - r*0.3f, cy - r*0.4f,
-                              col, cx + r*0.3f, cy + r*0.4f, false);
-    g.setGradientFill(bulb);
-    g.fillEllipse(cx - r, cy - r, r * 2.0f, r * 2.0f);
-    g.setColour(juce::Colour(0x80000000));
-    g.drawEllipse(cx - r, cy - r, r * 2.0f, r * 2.0f, 1.0f);
+    // "CLIP" label underneath
+    g.setColour(juce::Colour(0xffffffff).withAlpha(0.9f));
+    g.setFont(juce::Font("Helvetica", 8.0f, juce::Font::bold));
+    g.drawText("CLIP", 0, (int)(cy + hexD*0.5f + 2), getWidth(), 10,
+               juce::Justification::centred);
 }
 
 DN1000Editor::DN1000Editor(DN1000Processor& p)
@@ -183,8 +204,8 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     // Position: x=710 (center between treble 660 and output 760), y=cy-50
     addAndMakeVisible(clipA_);
     addAndMakeVisible(clipB_);
-    clipA_.setBounds(700, kRowAY - 60, 20, 20);
-    clipB_.setBounds(700, kRowBY - 60, 20, 20);
+    clipA_.setBounds(702, kRowAY - 55, 16, 24); // Smaller, down a bit
+    clipB_.setBounds(702, kRowBY - 55, 16, 24);
     startTimerHz(30); // Update clip indicators
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "power", powerToggle_));
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "link", linkToggle_));
