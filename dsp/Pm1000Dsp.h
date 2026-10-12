@@ -187,7 +187,7 @@ inline float transistorStage(float x) {
     // For small x, ≈ x (unity).
     float y;
     if (x > 0.0f)
-        y = x / (1.0f + 0.05f * x * x); // soft saturation, 2nd harmonic
+        y = x / (1.0f + 0.02f * x * x); // gentle saturation, more headroom (real PM1000)
     else
         y = x / (1.0f + 0.08f * x * x); // slightly harder on negative
     return y;
