@@ -42,7 +42,7 @@ public:
     float getChannelALevel() const { return chA_.getLevel(); }
     int getOutMode() const {
         // Get from APVTS (outModeA parameter)
-        if (auto* p = apvts.getRawParameterValue("outModeA"))
+        if (auto* p = apvts.getRawParameterValue("aOutMode"))
             return (int)p->load();
         return 0;
     }

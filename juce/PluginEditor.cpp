@@ -261,9 +261,8 @@ void DN1000Editor::renderFaceplate() {
     juce::Graphics g(faceplate_);
     g.fillAll(juce::Colour(0xfffdfbf3)); // Ivory (not brushed aluminum)
 
+    #if 0 // Brushed metal skipped for ivory finish
     std::mt19937 rng(1234);
-    // (Brushed metal skipped for ivory finish)
-    if (false) // Brushed metal: fine horizontal streaks (anisotropic highlight)
     std::uniform_real_distribution<float> by(0, kH);
     std::uniform_real_distribution<float> bl(60.0f, 400.0f);
     std::uniform_real_distribution<float> ba(0.03f, 0.09f);
@@ -277,6 +276,7 @@ void DN1000Editor::renderFaceplate() {
                         .withAlpha(a));
         g.fillRect(x, y, len, 1.0f);
     }
+#endif
     // Fine hammered grain
     std::uniform_real_distribution<float> dx(0, kW), dy(0, kH);
     std::uniform_real_distribution<float> ds(0.5f, 1.6f);
