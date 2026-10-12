@@ -395,7 +395,7 @@ void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
                                             juce::StringRef bottom) {
     const auto b = t.getBounds();
     const int cx = b.getCentreX();
-    g.setColour(PmStyle::silk());
+    g.setColour(juce::Colours::black); // Black for cream faceplate
     g.setFont(PmStyle::condensed(10.0f));
     g.drawText(top, cx - 24, b.getY() - 6, 48, 14, juce::Justification::centred);
     g.drawText(bottom, cx - 24, b.getBottom() + 0, 48, 14, juce::Justification::centred);
@@ -636,7 +636,7 @@ void DN1000Editor::paint(juce::Graphics& g) {
     drawBoardTape(g);
 
     // — Right block: power toggle + jewel —
-    g.setColour(PmStyle::silk());
+    g.setColour(juce::Colours::black); // Black for cream faceplate
     g.setFont(PmStyle::condensed(11.0f));
     g.drawText("POWER", 829, 282, 110, 14, juce::Justification::centred);
     drawJewel(g, 884, 160, powerToggle_.getToggleState());
