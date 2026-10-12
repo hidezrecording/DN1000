@@ -3,9 +3,9 @@
 #include <cmath>
 
 juce::Font PmStyle::condensed(float size) {
-    static juce::Typeface::Ptr tf = juce::Typeface::createSystemTypefaceFor(
-        BinaryData::OswaldBold_ttf, (size_t)BinaryData::OswaldBold_ttfSize);
-    return juce::Font(tf).withHeight(size);
+    // Yamaha PM1000: clean grotesque sans, slightly rounded, bold
+    // Helvetica Bold is the closest system match to the silkscreen
+    return juce::Font("Helvetica", size, juce::Font::bold);
 }
 
 juce::Font PmStyle::marker(float size) {
