@@ -290,7 +290,7 @@ void DN1000Editor::drawStripLabel(juce::Graphics& g, juce::StringRef text,
     g.addTransform(juce::AffineTransform::scale(1.30f, 1.0f,
                                                (float)cx, (float)(y + 7)));
     g.setColour(juce::Colours::white.withAlpha(0.96f));
-    g.setFont(PmStyle::condensed(12.0f));
+    g.setFont(PmStyle::condensed(12.0f).withExtraKerningFactor(-0.08f));
     g.drawText(text, cx - 60, y, 120, 15, juce::Justification::centred);
 }
 
