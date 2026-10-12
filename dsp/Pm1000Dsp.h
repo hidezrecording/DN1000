@@ -207,7 +207,9 @@ private:
     double fs_ = 48000.0;
     ChannelParams p_;
     float inGainLin_ = 1.0f;
-    float gainLin_   = 1.0f;
+    float inGainLinTarget_ = 1.0f;
+    float gainLin_ = 1.0f;
+    float gainLinTarget_ = 1.0f; // Smoothed to prevent zipper noise
     Biquad hpf_, lpf_, bass_, bassBump_, mid_, treble_;
     float vu_ = 0.0f;
     Transformer inXfmr_;
@@ -233,6 +235,7 @@ public:
 
 private:
     float outLin_ = 1.0f;
+    float outLinTarget_ = 1.0f; // Smoothed
 };
 
 } // namespace pm1000

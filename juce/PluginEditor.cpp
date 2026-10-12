@@ -322,8 +322,8 @@ void DN1000Editor::drawToggleMarkers(juce::Graphics& g, juce::ToggleButton& t,
     const int cx = b.getCentreX();
     g.setColour(PmStyle::silk());
     g.setFont(PmStyle::condensed(10.0f));
-    g.drawText(top, cx - 24, b.getY() - 10, 48, 14, juce::Justification::centred);
-    g.drawText(bottom, cx - 24, b.getBottom() - 2, 48, 14, juce::Justification::centred);
+    g.drawText(top, cx - 24, b.getY() - 6, 48, 14, juce::Justification::centred);
+    g.drawText(bottom, cx - 24, b.getBottom() + 0, 48, 14, juce::Justification::centred);
 }
 
 void DN1000Editor::drawTransformerSymbol(juce::Graphics& g, float x, float y) {
@@ -443,7 +443,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     for (auto* k : { &s.bassKnob, &s.midKnob, &s.trebleKnob })
         drawDetentLabels(g, *k, { "-10", "0", "+10" }, { -135, 0, 135 },
                          { 22.0f, 14.0f, 22.0f }, 9.5f);
-    drawDetentLabels(g, s.outKnob, { "0", "U", "10" }, { -135, 0, 135 }, {}, 9.5f);
+    drawDetentLabels(g, s.outKnob, { "0", "U", "10" }, { -135, 0, 135 }, {}, 8.5f);
 
     // Slide-switch position labels (left of each switch)
     auto slideLabels = [&](juce::Slider& sl, int x, const juce::StringArray& labs) {

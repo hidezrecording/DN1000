@@ -116,13 +116,13 @@ void Channel::prepare(double sampleRate) {
 
 void Channel::setParams(const ChannelParams& p) {
     p_ = p;
-    inGainLin_ = dbToLinear(detentGainDb(p_.inputDetent) + (p_.mic ? 30.0f : 0.0f));
+    inGainLinTarget_ = dbToLinear(detentGainDb(p_.inputDetent) + (p_.mic ? 30.0f : 0.0f));
 
     // Per-channel GAIN knob: 0..10, 7 = nominal unity; full-down kills.
     if (p_.gain <= 0.02f)
         gainLin_ = dbToLinear(-93.0f);
     else
-        gainLin_ = p_.gain / 5.0f; // 5.0 = unity (12 o'clock)
+        gainLinTarget_ = p_.gain / 5.0f; // 5.0 = unity (12 o'clock), smoothed per-sample
 
     const float hpfFreq = p_.hpfMode == 1 ? 40.0f : (p_.hpfMode == 2 ? 80.0f : 0.0f);
     if (hpfFreq > 0.0f) {
@@ -190,8 +190,8 @@ float Channel::processSample(float x) {
     // Slew limiting: authentic 15 V/us (transparent for normal signals)
     y = slew_.process(y);
 
-    // Analog noise DISABLED for oscillation debugging
-    // y += noise_.process() + psu_.getRipple();
+    // Analog noise: hiss only (no hum/ripple - that caused oscillation)
+    y += noise_.process(); // -100dB, inaudible but adds "life"
 
     if (p_.phaseInvert) y = -y;
     if (p_.hpfMode != 0) y = hpf_.process(y);
@@ -202,6 +202,8 @@ float Channel::processSample(float x) {
     y = mid_.process(y);
     y = treble_.process(y);
 
+    // Smooth gain to prevent zipper noise/crackle when turning knob
+    gainLin_ += (gainLinTarget_ - gainLin_) * 0.005f;
     y *= gainLin_;
 
     // Output section: three selectable characters (T=Tamura, C=Cinemag, S=Sumthang).
@@ -242,14 +244,15 @@ float Channel::vuDb() const {
 void MasterStage::prepare(double) { reset(); }
 
 void MasterStage::setLevel(float level) {
-    outLin_ = (level <= 0.02f) ? 0.0f : level / 5.0f; // 5.0 = unity (12 o'clock)
+    outLinTarget_ = (level <= 0.02f) ? 0.0f : level / 5.0f; // 5.0 = unity, smoothed
 }
 
 void MasterStage::reset() {}
 
 void MasterStage::process(float inL, float inR, float& outL, float& outR) {
     // Discrete L/R: no crosstalk (per user request for testing).
-    // Crosstalk model can be re-enabled later.
+    // Smooth master gain to prevent crackle
+    outLin_ += (outLinTarget_ - outLin_) * 0.005f;
     outL = inL * outLin_;
     outR = inR * outLin_;
 }
