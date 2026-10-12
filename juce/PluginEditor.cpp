@@ -494,8 +494,8 @@ void DN1000Editor::drawJewel(juce::Graphics& g, float x, float y, bool lit) {
 void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     // Horizontal silkscreen labels below each control
     drawStripLabel(g, "INPUT", kInputX, cy + 37, 1.30f);
-    drawStripLabel(g, "LOW CUT", kHpfX, cy + 37, 1.0f);
-    drawStripLabel(g, "MID RANGE", kMidSwX, cy + 37, 1.0f);
+    drawStripLabel(g, "LOW CUT", kHpfX - 18, cy + 37, 1.30f);
+    drawStripLabel(g, "MID FREQ", kMidSwX, cy + 37, 1.30f);
     drawStripLabel(g, "BASS", kBassX, cy + 37, 1.30f);
     drawStripLabel(g, "MID-RANGE", kMidX, cy + 37);
     drawStripLabel(g, "TREBLE", kTrebleX, cy + 37, 1.30f);
@@ -532,7 +532,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     slideLabels(s.hpfSlide, kHpfX - 36, { "80", "40", "OFF" });
     // HIGH CUT: 3 positions (OFF/20K/16K), labels lined up with HI-PASS
     slideLabels(s.lpfSlide, kLpfX - 36, { "16", "20", "OFF" });
-    drawStripLabel(g, "HIGH CUT", kLpfX, cy + 37, 1.0f);
+    drawStripLabel(g, "HIGH CUT", kLpfX + 18, cy + 37, 1.30f);
     slideLabels(s.midSlide, kMidSwX - 36, { "4K", "2K", "1K" });
 }
 
