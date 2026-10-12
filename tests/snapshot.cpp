@@ -7,7 +7,7 @@
 int main() {
     juce::ScopedJuceInitialiser_GUI gui;
 
-    Hamamatsu1000Processor proc;
+    DN1000Processor proc;
     proc.prepareToPlay(48000.0, 512);
 
     // Run some audio through so the DSP state is live.
