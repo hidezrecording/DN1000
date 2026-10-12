@@ -574,11 +574,11 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
         (size_t)BinaryData::texgyreheroscnbold_otfSize);
     juce::Font font(wordmarkTf);
     font.setHeight(26.0f);
-    font = font.withExtraKerningFactor(-0.06f); // Yamaha spacing is tight
+    font = font.withExtraKerningFactor(0.005f); // Yamaha letters breathe a little
     g.setFont(font);
     const juce::String text = "BITEY";
     const float textW = (float)font.getStringWidth(text);
-    const float sx = 1.10f; // Un-smush: stretch the wordmark out a little
+    const float sx = 1.15f; // Un-smushed and a touch blockier, like the Yamaha face
     // Y's right edge lines up with the right edge of the top module (848)
     const float textRight = 848.0f;
     const float textX = textRight - textW;
@@ -606,15 +606,20 @@ void DN1000Editor::drawBiteyLogo(juce::Graphics& g) {
                    juce::Justification::left);
     }
 
-    // Mic emblem circle: exactly the height of the B, on the B's centreline
-    g.drawEllipse(ex - er, emblemCy - er, er*2, er*2, 1.5f);
-
-    // Three mics (Yamaha-style, tips form equilateral triangle), scaled to
-    // the emblem with a little clearance from the ring. Capsules MUCH
-    // narrower now so the three heads read as separate microphones.
+    // Mic emblem, REVERSED like the Yamaha tuning-fork mark: a thin outer
+    // ring, a black filled disc, and the microphones in white inside it.
+    // Exactly the height of the B, on the B's centreline.
+    const float discR = er - 2.4f; // black disc inside the ring (white gap between)
     g.setColour(green);
-    const float ms = er / 10.0f * 0.94f; // mic scale (designed in a 10-unit space)
-    const float mw = 1.15f;
+    g.drawEllipse(ex - er, emblemCy - er, er*2, er*2, 1.2f); // thin outer ring
+    g.fillEllipse(ex - discR, emblemCy - discR, discR*2, discR*2); // black disc
+
+    // Three white mics (Yamaha-style, tips form equilateral triangle),
+    // scaled to the disc with a little clearance. Capsules narrow so the
+    // three heads read as separate microphones.
+    g.setColour(juce::Colours::white);
+    const float ms = discR / 10.0f * 0.92f; // mic scale (designed in a 10-unit space)
+    const float mw = 1.05f;
     for (int i = 0; i < 3; ++i) {
         const float angle = juce::MathConstants<float>::pi * 2.0f * i / 3.0f;
         g.saveState();
