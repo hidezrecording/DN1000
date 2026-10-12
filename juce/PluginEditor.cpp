@@ -68,7 +68,9 @@ DN1000Editor::DN1000Editor(DN1000Processor& p)
     }
 
     setupBareToggle(polA_);
+    polA_.getProperties().set("invertToggle", true);
     setupBareToggle(polB_);
+    polB_.getProperties().set("invertToggle", true);
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "aPhase", polA_));
     bAtts_.push_back(std::make_unique<BAtt>(apvts, "bPhase", polB_));
     polA_.setBounds(71, kRowAY - 28, 30, 56);
@@ -384,7 +386,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
     for (auto* k : { &s.bassKnob, &s.midKnob, &s.trebleKnob })
         drawDetentLabels(g, *k, { "-10", "0", "+10" }, { -135, 0, 135 },
                          { 22.0f, 14.0f, 22.0f }, 9.5f);
-    drawDetentLabels(g, s.outKnob, { "0", "UNITY" }, { -135, 135 }, {}, 9.5f);
+    drawDetentLabels(g, s.outKnob, { "0", "U" }, { -135, 135 }, {}, 9.5f);
 
     // Slide-switch position labels (left of each switch)
     auto slideLabels = [&](juce::Slider& sl, int x, const juce::StringArray& labs) {
@@ -392,7 +394,7 @@ void DN1000Editor::paintStrip(juce::Graphics& g, ChannelStrip& s, int cy) {
         g.setColour(juce::Colours::white.withAlpha(0.94f));
         g.setFont(PmStyle::condensed(10.0f));
         for (int i = 0; i < 3; ++i) {
-            const float y = b.getY() + 6.0f + (float)i / 2.0f * (b.getHeight() - 12.0f);
+            const float y = b.getY() + 16.0f + (float)i / 2.0f * (b.getHeight() - 32.0f);
             g.drawText(labs[i], x, (int)(y - 7), 26, 14, juce::Justification::right);
         }
     };

@@ -112,6 +112,7 @@ void PmLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& butt
                                     .getWithDefault("toggle", juce::String(""))
                                     .toString();
     const bool on = button.getToggleState();
+    const bool invert = button.getProperties().getWithDefault("invertToggle", false);
     const auto bounds = button.getLocalBounds().toFloat();
     const auto pivot = bounds.getCentre();
     const float s = (kind == "amp") ? 1.45f : 1.0f;
@@ -134,7 +135,7 @@ void PmLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& butt
     g.fillEllipse(pivot.x - inR, pivot.y - inR, inR * 2.0f, inR * 2.0f);
 
     // Lever — short stubby bat with ball tip (UA reference)
-    const float ang = on ? -0.32f : juce::MathConstants<float>::pi + 0.32f;
+    const float ang = (on != invert) ? -0.32f : juce::MathConstants<float>::pi + 0.32f;
     const float len = 12.0f * s, bw = 3.5f * s;
     juce::Graphics::ScopedSaveState ss(g);
     g.addTransform(juce::AffineTransform::rotation(ang, pivot.x, pivot.y));
