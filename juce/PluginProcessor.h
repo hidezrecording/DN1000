@@ -51,6 +51,10 @@ public:
 private:
     pm1000::Channel chA_, chB_;
     pm1000::MasterStage master_;
+    pm1000::PowerSupply psu_;   // ONE shared supply for both channels
+    float powerGain_ = 0.0f;    // smoothed power fade (item 8)
+    float warmth_ = 0.0f;       // warm-up settle state 0..1 (item 8)
+    bool wasPowerOn_ = false;
 
     pm1000::ChannelParams channelParamsFor(const juce::String& prefix);
     void syncParamsToDsp();

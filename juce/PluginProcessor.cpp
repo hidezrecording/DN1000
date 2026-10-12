@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <cmath>
 
 DN1000Processor::DN1000Processor()
     : AudioProcessor(BusesProperties()
@@ -79,7 +80,7 @@ DN1000Processor::createParameterLayout()
         params.push_back(dB(chName + "Mid-Range", prefix + "Mid", -15.0f, 15.0f, 0.0f));
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID { prefix + "MidSel", 1 }, chName + "Mid-Range Freq",
-            juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f), 1.0f));
+            juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f), 0.0f)); // 0 = 1K default
         params.push_back(dB(chName + "Treble", prefix + "Treble", -15.0f, 15.0f, 0.0f));
         params.push_back(gain010(chName + "Output", prefix + "Gain"));
     }
@@ -91,10 +92,17 @@ DN1000Processor::createParameterLayout()
 
 void DN1000Processor::prepareToPlay(double sampleRate, int)
 {
-    chA_.prepare(sampleRate);
-    chB_.prepare(sampleRate);
+    chA_.prepare(sampleRate, 12345u);
+    chB_.prepare(sampleRate, 987654321u); // different hiss seed (item 7)
+    // Ch B component tolerances (item 9): real module pairs never match
+    chB_.setTolerances({ 1.015f, 0.99f, 1.01f, 1.02f, 1.04f, 0.97f });
     master_.prepare(sampleRate);
     master_.setLevel(5.0f); // fixed unity (5.0 = 0dB) — per-channel OUTPUT knobs do the work
+    psu_.reset();
+    powerGain_ = 0.0f;
+    warmth_ = 0.0f;
+    wasPowerOn_ = false;
+    setLatencySamples(chA_.latencySamples()); // oversampling round trip
     syncParamsToDsp();
 }
 
@@ -132,36 +140,55 @@ void DN1000Processor::processBlock(juce::AudioBuffer<float>& buffer,
 {
     juce::ScopedNoDenormals noDenormals;
 
-    // POWER off = hard bypass.
-    if (apvts.getRawParameterValue("power")->load() < 0.5f)
-        return;
-
+    const bool powerOn = apvts.getRawParameterValue("power")->load() > 0.5f;
     syncParamsToDsp();
 
     const int n = buffer.getNumSamples();
+    const double fs = getSampleRate() > 0.0 ? getSampleRate() : 48000.0;
     const float* inL = buffer.getReadPointer(0);
     const float* inR = buffer.getNumChannels() > 1 ? buffer.getReadPointer(1)
                                                    : buffer.getReadPointer(0);
     float* outL = buffer.getWritePointer(0);
     float* outR = buffer.getNumChannels() > 1 ? buffer.getWritePointer(1) : nullptr;
-
     const bool isMono = (outR == nullptr);
+
+    // Warm-up (item 8): after a power-on edge the unit settles over
+    // ~2.5 s; while off it cools slowly toward a lukewarm state.
+    if (powerOn) {
+        if (!wasPowerOn_) { /* keep current warmth: gear cools, not resets */ }
+        warmth_ += (1.0f - warmth_) * (float)(1.0 - std::exp(-(n / fs) / 2.5));
+        chA_.setWarmth(warmth_);
+        chB_.setWarmth(warmth_);
+    } else {
+        warmth_ += (0.25f - warmth_) * (float)(1.0 - std::exp(-(n / fs) / 60.0));
+    }
+    wasPowerOn_ = powerOn;
+
+    const float pgTarget = powerOn ? 1.0f : 0.0f;
+    const float pgCoef = pm1000::tauCoef(0.06f, fs); // ~300 ms power fade
+
     for (int i = 0; i < n; ++i)
     {
+        // Power fade (item 8): no hard bypass click; DSP keeps running
+        powerGain_ += (pgTarget - powerGain_) * pgCoef;
+
+        // Shared rail (item 1): both channels draw from one supply
+        const float rail = psu_.getRail();
+        float a, b;
         if (isMono) {
-            // Mono: process through Channel A only
-            const float a = chA_.processSample(inL[i]);
-            float L, R;
-            master_.process(a, a, L, R); // Feed same to both for consistent master
-            outL[i] = L;
+            a = chA_.processSample(inL[i], rail);
+            b = a;
         } else {
-            const float a = chA_.processSample(inL[i]);
-            const float b = chB_.processSample(inR[i]);
-            float L, R;
-            master_.process(a, b, L, R);
-            outL[i] = L;
-            outR[i] = R;
+            a = chA_.processSample(inL[i], rail);
+            b = chB_.processSample(inR[i], rail);
         }
+        // Rail demand from this sample's outputs drives the next sample
+        psu_.update(std::fabs(a) + (isMono ? 0.0f : std::fabs(b)), fs);
+
+        float L, R;
+        master_.process(a, b, L, R);
+        outL[i] = L * powerGain_;
+        if (!isMono) outR[i] = R * powerGain_;
     }
 }
 
