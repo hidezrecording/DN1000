@@ -255,6 +255,21 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line-soft);di
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.meter-glow,.vu-sweep,.clip-led{animation:none}.vu-sweep{transform:rotate(-134deg)}.clip-led{color:#66ef91;background:radial-gradient(circle at 38% 34%,#effff4 0 12%,#66ef91 42%,#2aa454 100%)}.js-reveal{transform:none;filter:none;transition:none}.btn{transition:none}}
 
 
+
+/* === Kit embed restyle: match this page's original signup form === */
+.kit-embed .formkit-form[data-uid]{max-width:none;margin-top:23px;padding:0;background:transparent;border:0;box-shadow:none;font-family:inherit}
+.kit-embed .formkit-form[data-uid] [data-style]{background:transparent;padding:0}
+.kit-embed .formkit-fields{display:block}
+.kit-embed .formkit-field{margin:0 0 15px}
+.kit-embed .formkit-input{width:100%;min-height:48px;padding:11px 13px;color:var(--paper)!important;background:linear-gradient(180deg,#080706,#0d0c0a)!important;border:1px solid #5a4f3f!important;border-radius:2px!important;font-size:16px;font-weight:400!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.42),0 1px rgba(255,255,255,.025)!important}
+.kit-embed .formkit-input:focus{border-color:#b9863e!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.42),0 0 0 1px rgba(246,162,27,.16);outline:none}
+.kit-embed .formkit-input::placeholder{color:#7f7463!important;opacity:1}
+.kit-embed .formkit-submit{display:flex;width:100%;min-height:48px;margin-top:3px;padding:0 22px;align-items:center;justify-content:center;color:#1b1003!important;background:linear-gradient(180deg,#ffd06f 0%,var(--amber-hi) 8%,var(--amber) 78%,#d27b08 100%)!important;border:1px solid #ffcf76!important;border-radius:3px!important;font-weight:700!important;font-size:13px!important;letter-spacing:.1em;text-transform:uppercase;box-shadow:inset 0 1px rgba(255,255,255,.65),inset 0 -1px rgba(86,41,0,.28),0 12px 28px rgba(246,162,27,.2)}
+.kit-embed .formkit-submit:hover{background:linear-gradient(180deg,#ffdc8c,#f6ab28 80%,#dd850c)!important}
+.kit-embed .formkit-powered-by-convertkit-container{margin-top:14px;text-align:center}
+.kit-embed .formkit-powered-by-convertkit{background:transparent!important;color:var(--paper-dim)!important;border-color:var(--line)!important;opacity:.75}
+.kit-embed .formkit-alert{margin:0 0 15px}
+.kit-embed .formkit-alert:empty{display:none}
 </style>
 </head>
 <body>
@@ -314,28 +329,9 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line-soft);di
       <h2>Join the early access list.</h2>
       <p class="signup-intro">Enter your name, email and platform. Once the form is received, the download area opens below.</p>
 
-      <form id="signup-form" action="https://formspree.io/f/xaeqoppz" method="POST">
-        <div class="field">
-          <label for="name">Name</label>
-          <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" data-fs-field required>
-        </div>
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" data-fs-field required>
-        </div>
-        <fieldset class="field" style="border:0;padding:0;margin-left:0;margin-right:0">
-          <legend class="legend">Platform</legend>
-          <div class="radios">
-            <label class="radio"><input type="radio" name="platform" value="macOS" data-fs-field required> Mac</label>
-            <label class="radio"><input type="radio" name="platform" value="Windows" data-fs-field required> Windows</label>
-          </div>
-        </fieldset>
-        <input type="hidden" name="product" value="DN1000">
-        <input type="hidden" name="_subject" value="New DN1000 early access signup">
-        <button class="btn btn-primary submit" type="submit">Unlock downloads</button>
-        <div class="status" data-fs-success role="status" aria-live="polite"></div>
-        <div class="status error" data-fs-error role="alert" aria-live="assertive"></div>
-      </form>
+      <div class="kit-embed">
+        <script async data-uid="05898c2087" src="https://bitey-plug-ins.kit.com/05898c2087/index.js"></script>
+      </div>
 
       <div class="downloads" id="downloads" aria-live="polite">
         <h3>Your early access download</h3>
@@ -386,35 +382,15 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line-soft);di
     reveals.forEach(function(el){ el.classList.add('in'); });
   }
 
-  var form = document.getElementById('signup-form');
-  var success = form.querySelector('[data-fs-success]');
   var downloads = document.getElementById('downloads');
-  var macDownloads = document.getElementById('macDownloads');
-  var windowsDownloads = document.getElementById('windowsDownloads');
-  var selectedPlatform = '';
-
-  form.addEventListener('submit', function(){
-    var selected = form.querySelector('input[name="platform"]:checked');
-    selectedPlatform = selected ? selected.value : '';
-  });
-
-  function revealDownloads(){
-    macDownloads.classList.toggle('show', selectedPlatform === 'macOS');
-    windowsDownloads.classList.toggle('show', selectedPlatform === 'Windows');
+  if (new URLSearchParams(window.location.search).get('joined') === '1') {
+    document.getElementById('macDownloads').classList.add('show');
+    document.getElementById('windowsDownloads').classList.add('show');
     downloads.classList.add('show');
-    downloads.scrollIntoView({behavior:'smooth',block:'nearest'});
+    setTimeout(function(){ downloads.scrollIntoView({block:'nearest'}); }, 350);
   }
-
-  var successObserver = new MutationObserver(function(){
-    if (success.textContent.trim() && !success.hidden) revealDownloads();
-  });
-  successObserver.observe(success, {childList:true,subtree:true,characterData:true,attributes:true});
-  form.addEventListener('formspree:success', revealDownloads);
 })();
 
-window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
-formspree('initForm', { formElement: '#signup-form', formId: 'xaeqoppz' });
 </script>
-<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 </body>
 </html>
