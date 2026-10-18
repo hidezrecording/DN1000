@@ -232,6 +232,19 @@ float Channel::processInternal(float x, float rail) {
     y = mid_.process(y);
     y = treble_.process(y);
 
+    // A/B staging fix M2 (v2, Nathan 2026-10-18): EQ-boost headroom
+    // compensation. 40% of the total positive EQ boost (smoothed knob
+    // dB, capped at -9 dB) is trimmed here so boosts spend less of the
+    // shared back-end ceiling. At flat EQ this is exactly unity.
+    {
+        const float posDb = (bassS_ > 0.0f ? bassS_ : 0.0f)
+                          + (midS_ > 0.0f ? midS_ : 0.0f)
+                          + (trebleS_ > 0.0f ? trebleS_ : 0.0f);
+        const float compTarget = dbToLinear(-0.40f * (posDb > 22.5f ? 22.5f : posDb));
+        compLin_ += (compTarget - compLin_) * tauCoef(0.015f, fs_);
+        y *= compLin_;
+    }
+
     // Post-EQ stage (item 4): EQ boosts push this stage, like hardware
     y = transistorStage(y, bias3_.process(y, fs_), tol_.stageKnee);
     y = slew_.process(y);
@@ -247,22 +260,30 @@ float Channel::processInternal(float x, float rail) {
     // Output section: three selectable characters; the shared rail
     // (item 1) deepens the drive as it sags.
     const float drive = 2.0f - rail;
-    switch (p_.outMode) {
+    // A/B staging fix M1 (v2, Nathan 2026-10-18): ceiling rescale. The
+    // output curve runs on a 0.66-scaled copy of the signal and is
+    // scaled back afterwards, moving the fold point up ~3.6 dB. Curve
+    // shape and small-signal gain are unchanged; only the ceiling moves.
+    {
+        float oy = y * 0.66f;
+        switch (p_.outMode) {
         case 0: // Tamura transformer iron
         default:
-            y = std::tanh(y * drive + 0.10f * y * std::fabs(y));
+            oy = std::tanh(oy * drive + 0.10f * oy * std::fabs(oy));
             break;
         case 1: // Cinemag: hi-fi iron, open and transparent, subtle warmth
-            y = std::tanh(y * drive * 1.005f + 0.05f * y * std::fabs(y));
+            oy = std::tanh(oy * drive * 1.005f + 0.05f * oy * std::fabs(oy));
             break;
         case 2: { // Sumthang (Inner Tube Atomic): tube + nickel iron
             // 12SL7 triode voltage gain: soft knee, 2nd-harmonic sweetness
-            float t = std::tanh(y * drive * 1.12f + 0.30f * y * std::fabs(y));
+            float t = std::tanh(oy * drive * 1.12f + 0.30f * oy * std::fabs(oy));
             // 12V6 beam-tetrode output: 3rd-harmonic "hair" when pushed
             t = std::tanh(t * 1.04f + 0.10f * t * t * t);
-            y = t;
+            oy = t;
             break;
         }
+        }
+        y = oy / 0.66f;
     }
 
     // Decimated housekeeping (items 4+5): glide the EQ params toward

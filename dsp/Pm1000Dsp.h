@@ -350,6 +350,7 @@ private:
 
     // Smoothed gains (tau-based, item 6)
     float inGainLin_ = 1.0f, inGainLinTarget_ = 1.0f;
+    float compLin_ = 1.0f; // A/B staging fix M2: EQ-boost headroom compensation
     float gainLin_ = 1.0f, gainLinTarget_ = 1.0f;
 
     // Smoothed EQ params (item 5): targets live in p_, these glide
