@@ -14,6 +14,9 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   macos:
     name: macOS (VST3 + AU, Apple Silicon + Intel)
@@ -89,3 +92,47 @@ jobs:
         with:
           name: DN1000-Installer-macOS-${{ github.run_number }}
           path: DN1000-0.1.0-macOS.pkg
+
+  windows:
+    name: Windows (VST3 + Standalone)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download JUCE 8.0.6
+        run: |
+          curl.exe -L https://github.com/juce-framework/JUCE/archive/refs/tags/8.0.6.zip -o juce.zip
+          Expand-Archive -Path juce.zip -DestinationPath . -Force
+          Move-Item -Path JUCE-8.0.6 -Destination juce-sdk
+
+      - name: Configure
+        env:
+          JUCE_DIR: ${{ github.workspace }}\juce-sdk
+        run: cmake -B build -S juce
+
+      - name: Build (VST3 + Standalone targets)
+        run: cmake --build build --config Release --parallel --target DN1000_VST3 DN1000_Standalone
+
+      - name: Package ZIP
+        run: |
+          Compress-Archive -Path "build\DN1000_artefacts\Release\VST3\DN1000.vst3", "build\DN1000_artefacts\Release\Standalone\DN1000.exe" -DestinationPath DN1000-Windows.zip -Force
+          Get-Item DN1000-Windows.zip
+
+      - name: Upload plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: DN1000-Windows-${{ github.run_number }}
+          path: DN1000-Windows.zip
+
+      - name: Publish ZIP to windows-build branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp DN1000-Windows.zip /tmp/DN1000-Windows.zip
+          git checkout -B windows-build
+          mkdir -p windows
+          cp /tmp/DN1000-Windows.zip windows/DN1000-Windows.zip
+          git add windows/DN1000-Windows.zip
+          git commit -m "Windows build (VST3 + standalone) from ${GITHUB_SHA:0:8}"
+          git push --force origin windows-build
